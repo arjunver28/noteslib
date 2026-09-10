@@ -1,0 +1,718 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Notes Library{% endblock %}
+
+{% block content %}
+<!-- Admin Classroom Banner -->
+<div class="welcome-banner animate-fade-in-up">
+    <div class="row align-items-center">
+        <div class="col-md-7">
+            <span class="badge bg-warning text-dark px-3 py-1 mb-2 fw-bold text-uppercase">
+                <i class="bi bi-shield-shaded me-1"></i> Admin Portal
+            </span>
+            <h1 class="mb-1" id="adminWelcomeName">Welcome, Admin</h1>
+            <p class="mb-0">You are administrating: <span class="fw-bold" id="adminClassroomTitle">Loading Classroom...</span></p>
+        </div>
+        <div class="col-md-5 text-md-end mt-3 mt-md-0">
+            <button class="btn btn-custom btn-saffron w-100 w-md-auto shadow-sm" onclick="openUploadModal()">
+                <i class="bi bi-cloud-arrow-up-fill fs-5"></i> Upload New Notes PDF
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12 animate-fade-in-up" style="animation-delay: 0.1s;">
+        <div class="glass-card">
+            
+            <!-- Tab Controls -->
+            <div class="tabs-navigation">
+                <button class="tab-btn active" onclick="switchTab('pendingTab')">
+                    <i class="bi bi-person-check-fill me-2"></i>Pending Approvals 
+                    <span class="badge bg-danger ms-1" id="pendingBadge">0</span>
+                </button>
+                <button class="tab-btn" onclick="switchTab('rosterTab')">
+                    <i class="bi bi-people-fill me-2"></i>Student Roster
+                </button>
+                <button class="tab-btn" onclick="switchTab('notesTab')">
+                    <i class="bi bi-file-earmark-pdf-fill me-2"></i>My Uploaded Notes
+                </button>
+                <button class="tab-btn" onclick="switchTab('analyticsTab'); loadAnalytics();">
+                    <i class="bi bi-bar-chart-line-fill me-2"></i>Classroom Analytics
+                </button>
+            </div>
+            
+            <!-- TAB 1: Pending Approvals -->
+            <div id="pendingTab" class="tab-content active">
+                <div class="table-responsive table-responsive-custom">
+                    <table class="table table-custom mb-0">
+                        <thead>
+                            <tr>
+                                <th>Roll Number</th>
+                                <th>Student Name</th>
+                                <th>Contact No</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pendingTableBody">
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted">Loading pending students...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- TAB 2: Student Roster -->
+            <div id="rosterTab" class="tab-content">
+                <div class="table-responsive table-responsive-custom">
+                    <table class="table table-custom mb-0">
+                        <thead>
+                            <tr>
+                                <th>Roll Number</th>
+                                <th>Student Name</th>
+                                <th>Contact No</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rosterTableBody">
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">Loading student list...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- TAB 3: My Uploaded Notes -->
+            <div id="notesTab" class="tab-content">
+                <div class="table-responsive table-responsive-custom">
+                    <table class="table table-custom mb-0">
+                        <thead>
+                            <tr>
+                                <th>Subject</th>
+                                <th>Unit</th>
+                                <th>Topic</th>
+                                <th>Notes Prepared By</th>
+                                <th>Upload Date</th>
+                                <th>View File</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="notesTableBody">
+                            <tr>
+                                <td colspan="7" class="text-center py-4 text-muted">Loading notes...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- TAB 4: Classroom Analytics -->
+            <div id="analyticsTab" class="tab-content">
+                <div class="row">
+                    <!-- Stat 1: Total Views -->
+                    <div class="col-md-4 mb-3">
+                        <div class="glass-card text-center p-4">
+                            <h2 class="text-success fw-bold" id="statTotalViews">0</h2>
+                            <span class="text-muted small text-uppercase fw-semibold">Total Note Views</span>
+                        </div>
+                    </div>
+                    <!-- Stat 2: Active Students -->
+                    <div class="col-md-4 mb-3">
+                        <div class="glass-card text-center p-4">
+                            <h2 class="text-warning fw-bold" id="statActiveStudents">0</h2>
+                            <span class="text-muted small text-uppercase fw-semibold">Active Viewing Students</span>
+                        </div>
+                    </div>
+                    <!-- Stat 3: Total Notes -->
+                    <div class="col-md-4 mb-3">
+                        <div class="glass-card text-center p-4">
+                            <h2 class="text-primary fw-bold" id="statTotalNotes">0</h2>
+                            <span class="text-muted small text-uppercase fw-semibold">Total Class Notes</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <h5 class="fw-bold mt-4 mb-3 text-success"><i class="bi bi-star-fill me-2 text-warning"></i>Most Popular Notes (Top Viewed)</h5>
+                <div class="table-responsive table-responsive-custom">
+                    <table class="table table-custom mb-0">
+                        <thead>
+                            <tr>
+                                <th>Subject</th>
+                                <th>Prepared By</th>
+                                <th>Views Count</th>
+                            </tr>
+                        </thead>
+                        <tbody id="popularNotesBody">
+                            <tr>
+                                <td colspan="3" class="text-center py-4 text-muted">No view analytics recorded yet.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+<!-- MODAL 1: Upload Notes PDF -->
+<div class="modal-custom" id="uploadNotesModal">
+    <div class="modal-content-custom">
+        <div class="modal-header-custom">
+            <h3><i class="bi bi-cloud-arrow-up-fill me-2"></i>Upload Note PDF</h3>
+            <button class="modal-close-btn" onclick="closeUploadModal()">&times;</button>
+        </div>
+        <form id="uploadNotesForm" onsubmit="handleNotesUpload(event)">
+            <div class="modal-body-custom">
+                <div class="alert alert-warning py-2 mb-3 small">
+                    <i class="bi bi-info-circle-fill me-1"></i> Note: This file will automatically be marked and tagged for your assigned classroom.
+                </div>
+                
+                <div class="form-group-custom">
+                    <label class="form-label-custom" for="upload_subject_select">Subject</label>
+                    <select class="form-control-custom" id="upload_subject_select" onchange="toggleSubjectCustomInput()" required>
+                        <option value="">-- Select Subject --</option>
+                    </select>
+                    <input type="text" class="form-control-custom mt-2 d-none" id="upload_subject_custom" placeholder="Or enter subject manually">
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group-custom">
+                            <label class="form-label-custom" for="upload_unit">Unit</label>
+                            <select class="form-control-custom" id="upload_unit" required>
+                                <option value="">-- Choose Unit --</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="others">others</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group-custom">
+                            <label class="form-label-custom" for="upload_topic">Topic (Optional)</label>
+                            <input type="text" class="form-control-custom" id="upload_topic" placeholder="e.g. Introduction">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group-custom">
+                            <label class="form-label-custom" for="upload_credit_roll">Prepared By (Roll No)</label>
+                            <input type="text" class="form-control-custom" id="upload_credit_roll" required placeholder="e.g. SUG2301045">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group-custom">
+                            <label class="form-label-custom" for="upload_credit_name">Prepared By (Student Name)</label>
+                            <input type="text" class="form-control-custom" id="upload_credit_name" required placeholder="e.g. Amit Singh">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group-custom">
+                    <label class="form-label-custom" for="upload_file">Select Note (PDF only)</label>
+                    <input type="file" class="form-control-custom" id="upload_file" accept=".pdf" required>
+                </div>
+                
+                <div class="progress d-none mb-3" style="height: 8px;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" style="width: 0%"></div>
+                </div>
+            </div>
+            
+            <div class="modal-footer-custom">
+                <button type="button" class="btn btn-custom btn-green-outline" onclick="closeUploadModal()">Cancel</button>
+                <button type="submit" class="btn btn-custom btn-green">Upload Note</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL 2: Change Student Password -->
+<div class="modal-custom" id="changePasswordModal">
+    <div class="modal-content-custom">
+        <div class="modal-header-custom">
+            <h3><i class="bi bi-key-fill me-2"></i>Change Student Password</h3>
+            <button class="modal-close-btn" onclick="closePasswordModal()">&times;</button>
+        </div>
+        <div class="modal-body-custom">
+            <div class="mb-3">
+                <label class="small text-muted d-block">Target Student</label>
+                <span class="fw-bold fs-5" id="changePassStudentName">-</span>
+                <span class="text-secondary small" id="changePassStudentRoll">-</span>
+            </div>
+            <div class="form-group-custom">
+                <label class="form-label-custom" for="new_student_password">New Password</label>
+                <input type="password" class="form-control-custom" id="new_student_password" placeholder="Enter new password for student" required>
+            </div>
+        </div>
+        <div class="modal-footer-custom">
+            <button class="btn btn-custom btn-green-outline" onclick="closePasswordModal()">Cancel</button>
+            <button class="btn btn-custom btn-saffron" onclick="saveStudentPassword()">Update Password</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentStudentRollForPass = '';
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadClassroomInfo();
+        loadPendingStudents();
+        loadApprovedStudents();
+        loadNotes();
+        
+        // Auto lookup roll number for note credit name
+        const creditRollInput = document.getElementById('upload_credit_roll');
+        if (creditRollInput) {
+            creditRollInput.addEventListener('input', function(e) {
+                const roll = e.target.value.trim().toUpperCase();
+                const nameInput = document.getElementById('upload_credit_name');
+                if (roll.length >= 4) {
+                    fetch(`/api/student/lookup/${roll}`)
+                    .then(res => {
+                        if (!res.ok) throw new Error("Not found");
+                        return res.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            nameInput.value = data.name;
+                            nameInput.readOnly = true;
+                        }
+                    })
+                    .catch(err => {
+                        nameInput.value = '';
+                        nameInput.readOnly = false;
+                    });
+                } else {
+                    nameInput.value = '';
+                    nameInput.readOnly = false;
+                }
+            });
+        }
+    });
+
+    function switchTab(tabId) {
+        const btns = document.querySelectorAll('.tab-btn');
+        btns.forEach(btn => btn.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+
+        const contents = document.querySelectorAll('.tab-content');
+        contents.forEach(content => content.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+    }
+
+    function loadClassroomInfo() {
+        fetch('/api/admin/classroom')
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.classroom) {
+                const c = data.classroom;
+                document.getElementById('adminClassroomTitle').textContent = `${c.course} - ${c.branch} - Semester ${c.semester}`;
+                
+                // Populate subject select dropdown
+                const select = document.getElementById('upload_subject_select');
+                select.innerHTML = '<option value="">-- Select Subject --</option>';
+                if (c.subjects && c.subjects.length > 0) {
+                    c.subjects.forEach(sub => {
+                        const opt = document.createElement('option');
+                        opt.value = sub;
+                        opt.textContent = sub;
+                        select.appendChild(opt);
+                    });
+                    const optCustom = document.createElement('option');
+                    optCustom.value = "__custom__";
+                    optCustom.textContent = "-- Type Manually --";
+                    select.appendChild(optCustom);
+                } else {
+                    const optCustom = document.createElement('option');
+                    optCustom.value = "__custom__";
+                    optCustom.textContent = "No subjects configured (Type manually)";
+                    select.appendChild(optCustom);
+                    document.getElementById('upload_subject_custom').classList.remove('d-none');
+                    document.getElementById('upload_subject_custom').required = true;
+                }
+            }
+        })
+        .catch(err => console.error("Error loading classroom info:", err));
+    }
+
+    function toggleSubjectCustomInput() {
+        const select = document.getElementById('upload_subject_select');
+        const customInput = document.getElementById('upload_subject_custom');
+        if (select.value === '__custom__') {
+            customInput.classList.remove('d-none');
+            customInput.required = true;
+        } else {
+            customInput.classList.add('d-none');
+            customInput.required = false;
+        }
+    }
+
+    function loadPendingStudents() {
+        fetch('/api/admin/students/pending')
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const tbody = document.getElementById('pendingTableBody');
+                tbody.innerHTML = '';
+                
+                const count = data.students.length;
+                document.getElementById('pendingBadge').textContent = count;
+                
+                if (count === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-muted">No pending student registrations.</td></tr>`;
+                    return;
+                }
+                
+                data.students.forEach(student => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${escapeHTML(student.roll_number)}</strong></td>
+                        <td>${escapeHTML(student.name)}</td>
+                        <td>${escapeHTML(student.contact)}</td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-custom btn-green py-1 px-2" onclick="approveStudent('${student.roll_number}')">
+                                    <i class="bi bi-check-lg"></i> Approve
+                                </button>
+                                <button class="btn btn-sm btn-custom btn-danger-custom py-1 px-2" onclick="deleteStudentRequest('${student.roll_number}')">
+                                    <i class="bi bi-trash-fill"></i> Delete Request
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+        })
+        .catch(err => console.error("Error loading pending students:", err));
+    }
+
+    function loadApprovedStudents() {
+        fetch('/api/admin/students/approved')
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const tbody = document.getElementById('rosterTableBody');
+                tbody.innerHTML = '';
+                
+                if (data.students.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">No students registered in roster yet.</td></tr>`;
+                    return;
+                }
+                
+                data.students.forEach(student => {
+                    const statusClass = student.status === 'approved' ? 'badge-approved' : 'badge-blocked';
+                    const toggleActionText = student.status === 'approved' ? 'Block' : 'Unblock';
+                    const toggleActionClass = student.status === 'approved' ? 'btn-danger-custom' : 'btn-green';
+                    const toggleActionIcon = student.status === 'approved' ? 'bi-lock-fill' : 'bi-unlock-fill';
+                    const newStatus = student.status === 'approved' ? 'blocked' : 'approved';
+                    
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${escapeHTML(student.roll_number)}</strong></td>
+                        <td>${escapeHTML(student.name)}</td>
+                        <td>${escapeHTML(student.contact)}</td>
+                        <td><span class="badge-custom ${statusClass}">${student.status}</span></td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-custom ${toggleActionClass} py-1 px-2" onclick="toggleBlockStudent('${student.roll_number}', '${newStatus}')">
+                                    <i class="bi ${toggleActionIcon}"></i> ${toggleActionText}
+                                </button>
+                                <button class="btn btn-sm btn-custom btn-green-outline py-1 px-2" onclick="openPasswordModal('${student.roll_number}', '${student.name}')">
+                                    <i class="bi bi-key-fill"></i> Change Pass
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+        })
+        .catch(err => console.error("Error loading roster students:", err));
+    }
+
+    function loadNotes() {
+        fetch('/api/admin/notes')
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const tbody = document.getElementById('notesTableBody');
+                tbody.innerHTML = '';
+                
+                if (data.notes.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted">No notes uploaded by you yet.</td></tr>`;
+                    return;
+                }
+                
+                data.notes.forEach(note => {
+                    const uploadDate = new Date(note.uploaded_at).toLocaleDateString('en-US', {
+                        year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                    });
+                    
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${escapeHTML(note.subject)}</strong></td>
+                        <td><span class="badge bg-secondary">Unit ${escapeHTML(note.unit)}</span></td>
+                        <td>${note.topic ? escapeHTML(note.topic) : '<em class="text-muted">N/A</em>'}</td>
+                        <td>${escapeHTML(note.credit_name)} <span class="text-muted small">(${escapeHTML(note.credit_roll)})</span></td>
+                        <td>${uploadDate}</td>
+                        <td>
+                            <a href="/${note.file_path}" target="_blank" class="btn btn-sm btn-outline-success">
+                                <i class="bi bi-box-arrow-up-right"></i> View PDF
+                            </a>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-custom btn-danger-custom py-1 px-2" onclick="deleteNote(${note.id})">
+                                <i class="bi bi-trash3-fill"></i> Delete
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+        })
+        .catch(err => console.error("Error loading notes:", err));
+    }
+
+    function loadAnalytics() {
+        fetch('/api/admin/analytics')
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const a = data.analytics;
+                document.getElementById('statTotalViews').textContent = a.total_views;
+                document.getElementById('statActiveStudents').textContent = a.active_students;
+                document.getElementById('statTotalNotes').textContent = a.total_notes;
+                
+                const tbody = document.getElementById('popularNotesBody');
+                tbody.innerHTML = '';
+                if (a.popular_notes.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="3" class="text-center py-3 text-muted">No view records found yet.</td></tr>`;
+                    return;
+                }
+                a.popular_notes.forEach(n => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${escapeHTML(n.subject)}</strong></td>
+                        <td>${escapeHTML(n.credit_name)}</td>
+                        <td><span class="badge bg-success px-2 py-1">${n.views} Views</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+        })
+        .catch(err => console.error("Analytics load error:", err));
+    }
+
+    function approveStudent(roll) {
+        fetch('/api/admin/student/approve', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ roll_number: roll })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                loadPendingStudents();
+                loadApprovedStudents();
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(err => console.error("Approve error:", err));
+    }
+
+    function deleteStudentRequest(roll) {
+        if (!confirm("Are you sure you want to permanently delete this registration request? The student will need to register again.")) {
+            return;
+        }
+        fetch('/api/admin/student/delete_request', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ roll_number: roll })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                loadPendingStudents();
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(err => console.error("Delete request error:", err));
+    }
+
+    function toggleBlockStudent(roll, newStatus) {
+        fetch('/api/admin/student/block', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ roll_number: roll, status: newStatus })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                loadApprovedStudents();
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(err => console.error("Block error:", err));
+    }
+
+    function openPasswordModal(roll, name) {
+        currentStudentRollForPass = roll;
+        document.getElementById('changePassStudentName').textContent = name;
+        document.getElementById('changePassStudentRoll').textContent = `(Roll No: ${roll})`;
+        document.getElementById('changePasswordModal').style.display = 'flex';
+    }
+    
+    function closePasswordModal() {
+        document.getElementById('changePasswordModal').style.display = 'none';
+        document.getElementById('new_student_password').value = '';
+    }
+    
+    function saveStudentPassword() {
+        const password = document.getElementById('new_student_password').value;
+        if (!password) {
+            alert("Please enter a new password.");
+            return;
+        }
+        
+        fetch('/api/admin/student/change_password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ roll_number: currentStudentRollForPass, new_password: password })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                closePasswordModal();
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(err => console.error("Password update error:", err));
+    }
+
+    function openUploadModal() {
+        document.getElementById('uploadNotesModal').style.display = 'flex';
+    }
+    
+    function closeUploadModal() {
+        document.getElementById('uploadNotesModal').style.display = 'none';
+        document.getElementById('uploadNotesForm').reset();
+        document.getElementById('upload_subject_custom').classList.add('d-none');
+        document.getElementById('upload_subject_custom').required = false;
+        document.getElementById('upload_credit_name').readOnly = false;
+        document.getElementById('upload_unit').value = '';
+        document.getElementById('upload_topic').value = '';
+    }
+    
+    function handleNotesUpload(event) {
+        event.preventDefault();
+        
+        const form = document.getElementById('uploadNotesForm');
+        const fileInput = document.getElementById('upload_file');
+        
+        if (fileInput.files.length === 0) {
+            alert("Please select a PDF file to upload.");
+            return;
+        }
+        
+        const select = document.getElementById('upload_subject_select');
+        const customInput = document.getElementById('upload_subject_custom');
+        const subject = (select.value === '__custom__' || select.value === '') ? customInput.value.trim() : select.value.trim();
+        
+        if (!subject) {
+            alert("Please select or specify a subject name.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('subject', subject);
+        formData.append('unit', document.getElementById('upload_unit').value.trim());
+        formData.append('topic', document.getElementById('upload_topic').value.trim());
+        formData.append('credit_roll', document.getElementById('upload_credit_roll').value.trim());
+        formData.append('credit_name', document.getElementById('upload_credit_name').value.trim());
+        formData.append('notes_file', fileInput.files[0]);
+        
+        const progressDiv = document.querySelector('#uploadNotesModal .progress');
+        const progressBar = document.querySelector('#uploadNotesModal .progress-bar');
+        progressDiv.classList.remove('d-none');
+        progressBar.style.width = '0%';
+        
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/api/admin/notes/upload', true);
+        
+        xhr.upload.onprogress = function(e) {
+            if (e.lengthComputable) {
+                const percent = Math.round((e.loaded / e.total) * 100);
+                progressBar.style.width = percent + '%';
+            }
+        };
+        
+        xhr.onload = function() {
+            progressDiv.classList.add('d-none');
+            try {
+                const data = JSON.parse(xhr.responseText);
+                if (xhr.status === 200 && data.success) {
+                    alert(data.message);
+                    closeUploadModal();
+                    loadNotes();
+                } else {
+                    alert(data.message || "Upload failed.");
+                }
+            } catch(e) {
+                alert("Upload failed. Bad response from server.");
+            }
+        };
+        
+        xhr.onerror = function() {
+            progressDiv.classList.add('d-none');
+            alert("An error occurred during note upload. Please check connection.");
+        };
+        
+        xhr.send(formData);
+    }
+    
+    function deleteNote(id) {
+        if (!confirm("Are you sure you want to delete this note? This cannot be undone.")) {
+            return;
+        }
+        
+        fetch('/api/admin/notes/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ note_id: id })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                loadNotes();
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(err => console.error("Error deleting note:", err));
+    }
+
+    function escapeHTML(str) {
+        if (!str) return '';
+        return str.replace(/[&<>'"]/g, 
+            tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+        );
+    }
+</script>
+{% endblock %}

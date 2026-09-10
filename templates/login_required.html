@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Authentication Required - Notes Library{% endblock %}
+
+{% block content %}
+<div class="login-container animate-fade-in-up">
+    <div class="login-split-card">
+        
+        <!-- Left Side: Warning / Info -->
+        <div class="login-brand-side" style="background: linear-gradient(135deg, #7c2d12 0%, #451a03 100%);">
+            <div class="login-brand-logo">
+                <img src="https://sug.ac.in/images/logo.png" alt="Shobhit University logo">
+            </div>
+            
+            <div class="login-brand-text">
+                <h2 class="text-warning"><i class="bi bi-shield-lock-fill me-2"></i>Access Locked</h2>
+                <p>The academic resource you are trying to access is secure. Anonymous link sharing outside of Shobhit University portals is restricted.</p>
+                <p class="mt-3 small text-white-50">Please log in to your authorized student or faculty account to verify access rights.</p>
+            </div>
+            
+            <div class="small text-warning-emphasis">
+                <i class="bi bi-lock-fill me-2"></i>Protected Academic File System
+            </div>
+        </div>
+        
+        <!-- Right Side: Unified Login Form -->
+        <div class="login-form-side">
+            <h3 class="fw-bold text-center mb-2" style="color: var(--primary-green);">Portal Login</h3>
+            <p class="text-center text-muted small mb-4">Provide your university credentials to unlock the document</p>
+            
+            <div class="login-tab-wrapper">
+                <button class="login-tab-btn active" onclick="switchLoginTab('student')">Student</button>
+                <button class="login-tab-btn" onclick="switchLoginTab('admin')">Admin</button>
+            </div>
+            
+            <div id="alertMessage" class="alert alert-danger d-none py-2 px-3 mb-3" role="alert"></div>
+            
+            <!-- Student Login Form -->
+            <form id="studentLoginForm" onsubmit="handleLogin(event, 'student')">
+                <div class="form-group-custom">
+                    <label class="form-label-custom" for="student_roll">Roll Number</label>
+                    <input type="text" class="form-control-custom" id="student_roll" required placeholder="e.g. SUG2301045">
+                </div>
+                <div class="form-group-custom">
+                    <label class="form-label-custom" for="student_password">Password</label>
+                    <input type="password" class="form-control-custom" id="student_password" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn btn-custom btn-green w-100 py-3 mt-2">
+                    <i class="bi bi-unlock-fill"></i> Authenticate & View PDF
+                </button>
+            </form>
+            
+            <!-- Admin Login Form -->
+            <form id="adminLoginForm" class="d-none" onsubmit="handleLogin(event, 'admin')">
+                <div class="form-group-custom">
+                    <label class="form-label-custom" for="admin_user">Username</label>
+                    <input type="text" class="form-control-custom" id="admin_user" placeholder="Enter Admin Username">
+                </div>
+                <div class="form-group-custom">
+                    <label class="form-label-custom" for="admin_password">Password</label>
+                    <input type="password" class="form-control-custom" id="admin_password" placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn btn-custom btn-green w-100 py-3 mt-2">
+                    <i class="bi bi-unlock-fill"></i> Authenticate & View PDF
+                </button>
+            </form>
+            
+            <div class="text-center mt-4">
+                <a href="/" class="btn btn-sm btn-custom btn-green-outline"><i class="bi bi-arrow-left"></i> Go to main portal</a>
+            </div>
+        </div>
+        
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let activeRole = 'student';
+
+    function switchLoginTab(role) {
+        activeRole = role;
+        const tabs = document.querySelectorAll('.login-tab-btn');
+        tabs.forEach((tab, index) => {
+            tab.classList.remove('active');
+            if ((role === 'student' && index === 0) || (role === 'admin' && index === 1)) {
+                tab.classList.add('active');
+            }
+        });
+
+        document.getElementById('studentLoginForm').classList.add('d-none');
+        document.getElementById('adminLoginForm').classList.add('d-none');
+
+        if (role === 'student') {
+            document.getElementById('studentLoginForm').classList.remove('d-none');
+        } else if (role === 'admin') {
+            document.getElementById('adminLoginForm').classList.remove('d-none');
+        }
+        document.getElementById('alertMessage').classList.add('d-none');
+    }
+
+    function handleLogin(event, role) {
+        event.preventDefault();
+        const alertDiv = document.getElementById('alertMessage');
+        alertDiv.classList.add('d-none');
+        
+        let payload = { role: role };
+        if (role === 'student') {
+            payload.roll_number = document.getElementById('student_roll').value.trim();
+            payload.password = document.getElementById('student_password').value;
+        } else if (role === 'admin') {
+            payload.username = document.getElementById('admin_user').value.trim();
+            payload.password = document.getElementById('admin_password').value;
+        }
+
+        fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(response => {
+            return response.json().then(data => {
+                if (response.ok) {
+                    window.location.href = data.redirect;
+                } else {
+                    alertDiv.textContent = data.message || "Authentication failed.";
+                    alertDiv.classList.remove('d-none');
+                }
+            });
+        })
+        .catch(err => {
+            console.error("Login error:", err);
+            alertDiv.textContent = "Server communication failure.";
+            alertDiv.classList.remove('d-none');
+        });
+    }
+</script>
+{% endblock %}

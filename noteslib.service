@@ -1,0 +1,20 @@
+[Unit]
+Description=Notes Library - Shobhit University Gangoh Portal
+After=network.target mariadb.service mysqld.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/var/www/23014168025/noteslib
+Environment="PATH=/var/www/23014168025/noteslib/venv/bin:/usr/local/bin:/usr/bin"
+Environment="DB_HOST=localhost"
+Environment="DB_USER=root"
+Environment="DB_PASSWORD=MySQL@123"
+Environment="DB_NAME=notes_library"
+Environment="DB_PORT=3306"
+ExecStart=/var/www/23014168025/noteslib/venv/bin/gunicorn --workers 4 --bind 0.0.0.0:3000 --timeout 120 wsgi:app
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

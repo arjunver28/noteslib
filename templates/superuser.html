@@ -1,0 +1,1314 @@
+{% extends "base.html" %}
+
+{% block title %}Superuser Console - Notes Library{% endblock %}
+
+{% block content %}
+<!-- Superuser Header -->
+<div class="welcome-banner animate-fade-in-up" style="background: linear-gradient(135deg, #053324 0%, #084c36 100%);">
+    <div class="row align-items-center">
+        <div class="col-12">
+            <span class="badge bg-danger text-light px-3 py-1 mb-2 fw-bold text-uppercase">
+                <i class="bi bi-shield-lock-fill me-1"></i> Root Administration Console
+            </span>
+            <h1 class="mb-1">Superuser Command Panel</h1>
+            <p class="mb-0">Full control over classrooms, administration credentials, and university semester lifecycle promotion.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Indicators -->
+<div class="row mb-4 animate-fade-in-up" style="animation-delay: 0.05s;">
+    <div class="col-6 col-lg-3 mb-3">
+        <div class="glass-card stat-card py-3 h-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <label class="small text-muted d-block uppercase fw-bold">Total Classrooms</label>
+                    <span class="stat-val" id="statsClassrooms">-</span>
+                </div>
+                <div class="stat-icon"><i class="bi bi-mortarboard-fill"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3 mb-3">
+        <div class="glass-card stat-card saffron py-3 h-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <label class="small text-muted d-block uppercase fw-bold">Active Students</label>
+                    <span class="stat-val" id="statsStudents">-</span>
+                </div>
+                <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3 mb-3">
+        <div class="glass-card stat-card py-3 h-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <label class="small text-muted d-block uppercase fw-bold">Assigned Admins</label>
+                    <span class="stat-val" id="statsAdmins">-</span>
+                </div>
+                <div class="stat-icon"><i class="bi bi-shield-shaded"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3 mb-3">
+        <div class="glass-card stat-card saffron py-3 h-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <label class="small text-muted d-block uppercase fw-bold">Total Notes PDF</label>
+                    <span class="stat-val" id="statsNotes">-</span>
+                </div>
+                <div class="stat-icon"><i class="bi bi-journal-arrow-up"></i></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12 animate-fade-in-up" style="animation-delay: 0.1s;">
+        <div class="glass-card">
+            
+            <!-- Tab Controls -->
+            <div class="tabs-navigation">
+                <button class="tab-btn active" onclick="switchTab('adminsTab')">
+                    <i class="bi bi-shield-lock-fill me-2"></i>Manage Admins
+                </button>
+                <button class="tab-btn" onclick="switchTab('classroomsTab')">
+                    <i class="bi bi-mortarboard-fill me-2"></i>Manage Classrooms
+                </button>
+                <button class="tab-btn" onclick="switchTab('courseConfigTab'); loadConfiguredCoursesDirectory();">
+                    <i class="bi bi-folder-fill me-2"></i>Configure Courses
+                </button>
+                <button class="tab-btn" onclick="switchTab('analyticsTab'); loadSystemAnalytics();">
+                    <i class="bi bi-bar-chart-fill me-2"></i>System Analytics
+                </button>
+                <button class="tab-btn" onclick="switchTab('systemTab')">
+                    <i class="bi bi-gear-fill me-2"></i>System Operations
+                </button>
+            </div>
+            
+            <!-- TAB 1: Manage Admins -->
+            <div id="adminsTab" class="tab-content active">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0" style="color: var(--primary-green);"><i class="bi bi-shield-shaded me-2"></i>Registered Admins</h5>
+                    <button class="btn btn-custom btn-green btn-sm" onclick="openCreateAdminModal()">
+                        <i class="bi bi-person-plus-fill"></i> Add New Admin
+                    </button>
+                </div>
+                
+                <div class="table-responsive table-responsive-custom">
+                    <table class="table table-custom mb-0">
+                        <thead>
+                            <tr>
+                                <th>Admin Name</th>
+                                <th>Username</th>
+                                <th>Assigned Classroom</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminsTableBody">
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted">Loading admins...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- TAB 2: Manage Classrooms -->
+            <div id="classroomsTab" class="tab-content">
+                <div class="row">
+                    <!-- Create Classroom form -->
+                    <div class="col-lg-4 mb-4">
+                        <div class="p-4 rounded-4 bg-light border border-opacity-10 border-success">
+                            <h5 class="fw-bold mb-4" style="color: var(--primary-green);"><i class="bi bi-plus-circle-fill me-2"></i>Create Classroom</h5>
+                            <form id="createClassroomForm" onsubmit="handleCreateClassroom(event)">
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="class_course">Course Name</label>
+                                    <select class="form-control-custom" id="class_course" onchange="handleCourseChange()" required>
+                                        <option value="">-- Choose Course --</option>
+                                    </select>
+                                </div>
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="class_branch">Branch Name</label>
+                                    <select class="form-control-custom" id="class_branch" required>
+                                        <option value="">-- Choose Branch --</option>
+                                    </select>
+                                </div>
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="class_semester">Semester (Number)</label>
+                                    <select class="form-control-custom" id="class_semester" required>
+                                        <option value="">-- Choose Semester --</option>
+                                    </select>
+                                </div>
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="class_subjects">Associated Subjects (Comma-separated list)</label>
+                                    <input type="text" class="form-control-custom" id="class_subjects" placeholder="e.g. Mathematics, OS, Python">
+                                </div>
+                                <button type="submit" class="btn btn-custom btn-green w-100">Create Classroom</button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Classrooms list -->
+                    <div class="col-lg-8">
+                        <h5 class="fw-bold mb-3" style="color: var(--primary-green);"><i class="bi bi-list-ul me-2"></i>Existing Classrooms</h5>
+                        <div class="table-responsive table-responsive-custom">
+                            <table class="table table-custom mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Course</th>
+                                        <th>Branch</th>
+                                        <th>Semester</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="classroomsTableBody">
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4 text-muted">Loading classrooms...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- TAB 3: System Operations -->
+            <div id="systemTab" class="tab-content">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <div class="card border-danger shadow-sm rounded-4 overflow-hidden mb-4">
+                            <div class="card-header bg-danger text-white py-3">
+                                <h5 class="fw-bold mb-0"><i class="bi bi-exclamation-triangle-fill me-2"></i>Danger Zone - Semester Management</h5>
+                            </div>
+                            <div class="card-body p-4">
+                                <h5 class="fw-bold text-dark">Promote / Catch Back Students</h5>
+                                <p class="text-secondary">Execute semester shifts for all registered **Students**. Please note that **Admins** remain static in their classrooms.</p>
+                                
+                                <div class="alert alert-warning">
+                                    <h6 class="fw-bold mb-2"><i class="bi bi-info-circle-fill me-1"></i>Operation Rules:</h6>
+                                    <ul class="mb-0 small">
+                                        <li>**Promotion**: Shifts students to the next semester. If the target classroom doesn't exist, the system returns an error.</li>
+                                        <li>**Graduation**: Students in their final semester (based on the course semester limit) will have their accounts **permanently deleted**.</li>
+                                        <li>**Catchback**: Shifts students back to their previous semester (minimum Semester 1). Requires previous semester classroom to exist.</li>
+                                        <li>*Admins and Notes are not moved.*</li>
+                                    </ul>
+                                </div>
+                                
+                                <div class="mt-4 d-flex gap-3 flex-wrap">
+                                    <button class="btn btn-custom btn-danger-custom py-3 px-4 w-100 w-sm-auto" onclick="openPromotionModal()">
+                                        <i class="bi bi-arrow-up-circle-fill fs-5"></i> Execute Semester Promotion
+                                    </button>
+                                    <button class="btn btn-custom btn-warning py-3 px-4 text-dark w-100 w-sm-auto" onclick="openCatchbackModal()">
+                                        <i class="bi bi-arrow-down-circle-fill fs-5"></i> Catch Back Students
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: Course Configuration -->
+            <div id="courseConfigTab" class="tab-content">
+                <div class="row">
+                    <!-- Left: Create Course & Branch -->
+                    <div class="col-lg-5 mb-4">
+                        <div class="p-4 rounded-4 bg-light border border-opacity-10 border-success mb-4">
+                            <h5 class="fw-bold mb-3" style="color: var(--primary-green);"><i class="bi bi-plus-circle-fill me-2"></i>Add Course</h5>
+                            <form id="addCourseForm" onsubmit="handleAddCourse(event)">
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="conf_course_name">Course Name</label>
+                                    <input type="text" class="form-control-custom" id="conf_course_name" required placeholder="e.g. B.Tech">
+                                </div>
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="conf_total_semesters">Total Semesters</label>
+                                    <input type="number" class="form-control-custom" id="conf_total_semesters" min="1" max="12" required placeholder="e.g. 8">
+                                </div>
+                                <button type="submit" class="btn btn-custom btn-green w-100">Add Course</button>
+                            </form>
+                        </div>
+                        
+                        <div class="p-4 rounded-4 bg-light border border-opacity-10 border-success">
+                            <h5 class="fw-bold mb-3" style="color: var(--primary-green);"><i class="bi bi-plus-circle-fill me-2"></i>Add Branch to Course</h5>
+                            <form id="addBranchForm" onsubmit="handleAddBranch(event)">
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="branch_course_select">Select Course</label>
+                                    <select class="form-control-custom" id="branch_course_select" required>
+                                        <option value="">-- Choose Course --</option>
+                                    </select>
+                                </div>
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="conf_branch_name">Branch Name</label>
+                                    <input type="text" class="form-control-custom" id="conf_branch_name" required placeholder="e.g. CSE">
+                                </div>
+                                <button type="submit" class="btn btn-custom btn-green w-100">Add Branch</button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Right: Configured Courses and Branches Directory -->
+                    <div class="col-lg-7">
+                        <h5 class="fw-bold mb-3" style="color: var(--primary-green);"><i class="bi bi-card-list me-2"></i>Course & Branch Directory</h5>
+                        <div id="courseDirectory" class="accordion">
+                            <!-- Populated dynamically -->
+                            <p class="text-muted text-center py-3">Loading directory...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 5: System Analytics -->
+            <div id="analyticsTab" class="tab-content">
+                <div class="row">
+                    <!-- Stat 1: Total Views -->
+                    <div class="col-md-4 mb-3">
+                        <div class="glass-card text-center p-4">
+                            <h2 class="text-success fw-bold" id="sysStatTotalViews">0</h2>
+                            <span class="text-muted small text-uppercase fw-semibold">System-wide Note Views</span>
+                        </div>
+                    </div>
+                    <!-- Stat 2: Active Students -->
+                    <div class="col-md-4 mb-3">
+                        <div class="glass-card text-center p-4">
+                            <h2 class="text-warning fw-bold" id="sysStatActiveStudents">0</h2>
+                            <span class="text-muted small text-uppercase fw-semibold">Active Students (Viewers)</span>
+                        </div>
+                    </div>
+                    <!-- Stat 3: Total Uploads -->
+                    <div class="col-md-4 mb-3">
+                        <div class="glass-card text-center p-4">
+                            <h2 class="text-primary fw-bold" id="sysStatTotalNotes">0</h2>
+                            <span class="text-muted small text-uppercase fw-semibold">Total Notes Uploaded</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-lg-6 mb-4">
+                        <h5 class="fw-bold mb-3 text-success"><i class="bi bi-trophy-fill me-2 text-warning"></i>Most Active Classrooms</h5>
+                        <div class="table-responsive table-responsive-custom">
+                            <table class="table table-custom mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Classroom</th>
+                                        <th>Total Views</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="activeClassroomsBody">
+                                    <tr>
+                                        <td colspan="2" class="text-center py-3 text-muted">No classroom activity yet.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 mb-4">
+                        <h5 class="fw-bold mb-3 text-success"><i class="bi bi-star-fill me-2 text-warning"></i>Top 5 Viewed Notes</h5>
+                        <div class="table-responsive table-responsive-custom">
+                            <table class="table table-custom mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Subject</th>
+                                        <th>Classroom</th>
+                                        <th>Views</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sysPopularNotesBody">
+                                    <tr>
+                                        <td colspan="3" class="text-center py-3 text-muted">No view records yet.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+<!-- MODAL 1: Create Admin -->
+<div class="modal-custom" id="createAdminModal">
+    <div class="modal-content-custom">
+        <div class="modal-header-custom">
+            <h3><i class="bi bi-person-plus-fill me-2"></i>Create Admin Account</h3>
+            <button class="modal-close-btn" onclick="closeCreateAdminModal()">&times;</button>
+        </div>
+        <form id="createAdminForm" onsubmit="handleCreateAdmin(event)">
+            <div class="modal-body-custom">
+                <div class="form-group-custom">
+                    <label class="form-label-custom" for="admin_name">Admin Name (Full Name)</label>
+                    <input type="text" class="form-control-custom" id="admin_name" required placeholder="e.g. Prof. R. K. Sharma">
+                </div>
+                <div class="form-group-custom">
+                    <label class="form-label-custom" for="admin_username">Admin Username</label>
+                    <input type="text" class="form-control-custom" id="admin_username" required placeholder="e.g. rksharma_cse">
+                </div>
+                <div class="form-group-custom">
+                    <label class="form-label-custom" for="admin_password">Login Password</label>
+                    <input type="password" class="form-control-custom" id="admin_password" required placeholder="Choose login password">
+                </div>
+                <div class="form-group-custom">
+                    <label class="form-label-custom" for="admin_classroom_id">Assign Admin Classroom</label>
+                    <select class="form-control-custom" id="admin_classroom_id" required>
+                        <option value="">-- Select Classroom Target --</option>
+                        <!-- Loaded dynamically -->
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer-custom">
+                <button type="button" class="btn btn-custom btn-green-outline" onclick="closeCreateAdminModal()">Cancel</button>
+                <button type="submit" class="btn btn-custom btn-green">Create Account</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL 2: Edit Admin -->
+<div class="modal-custom" id="editAdminModal">
+    <div class="modal-content-custom">
+        <div class="modal-header-custom">
+            <h3><i class="bi bi-pencil-square me-2"></i>Edit Admin Account</h3>
+            <button class="modal-close-btn" onclick="closeEditAdminModal()">&times;</button>
+        </div>
+        <form id="editAdminForm" onsubmit="handleEditAdmin(event)">
+            <input type="hidden" id="edit_admin_id">
+            <div class="modal-body-custom">
+                <div class="form-group-custom">
+                    <label class="form-label-custom" for="edit_admin_name">Admin Name (Full Name)</label>
+                    <input type="text" class="form-control-custom" id="edit_admin_name" required>
+                </div>
+                <div class="form-group-custom">
+                    <label class="form-label-custom" for="edit_admin_username">Admin Username</label>
+                    <input type="text" class="form-control-custom" id="edit_admin_username" required>
+                </div>
+                <div class="form-group-custom">
+                    <label class="form-label-custom" for="edit_admin_password">Login Password (Optional)</label>
+                    <input type="password" class="form-control-custom" id="edit_admin_password" placeholder="Leave empty to keep current password">
+                </div>
+                <div class="form-group-custom">
+                    <label class="form-label-custom" for="edit_admin_classroom_id">Assign Admin Classroom</label>
+                    <select class="form-control-custom" id="edit_admin_classroom_id" required>
+                        <option value="">-- Select Classroom Target --</option>
+                        <!-- Loaded dynamically -->
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer-custom">
+                <button type="button" class="btn btn-custom btn-green-outline" onclick="closeEditAdminModal()">Cancel</button>
+                <button type="submit" class="btn btn-custom btn-green">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL 3: Promote Confirmation -->
+<div class="modal-custom" id="promoteModal">
+    <div class="modal-content-custom border-danger">
+        <div class="modal-header-custom bg-danger">
+            <h3><i class="bi bi-shield-fill-exclamation me-2"></i>Confirm Promotion Operation</h3>
+            <button class="modal-close-btn" onclick="closePromotionModal()">&times;</button>
+        </div>
+        <div class="modal-body-custom">
+            <p class="text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill"></i> WARNING: This is a system-wide permanent operation that modifies classroom assignments for all students (admins are static).</p>
+            <p>Please enter the **Superuser password** to confirm the operation.</p>
+            <div class="form-group-custom">
+                <label class="form-label-custom" for="su_confirm_password">Superuser Password</label>
+                <input type="password" class="form-control-custom" id="su_confirm_password" placeholder="Verify password to proceed" required>
+            </div>
+        </div>
+        <div class="modal-footer-custom">
+            <button class="btn btn-custom btn-green-outline" onclick="closePromotionModal()">Abort</button>
+            <button class="btn btn-custom btn-danger-custom" onclick="executePromotion()">Confirm Promotion</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL 4: Catchback Confirmation -->
+<div class="modal-custom" id="catchbackModal">
+    <div class="modal-content-custom border-warning">
+        <div class="modal-header-custom bg-warning text-dark">
+            <h3><i class="bi bi-shield-fill-exclamation me-2"></i>Confirm Catchback Operation</h3>
+            <button class="modal-close-btn" onclick="closeCatchbackModal()">&times;</button>
+        </div>
+        <div class="modal-body-custom text-dark">
+            <p class="text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill"></i> WARNING: This is a system-wide operation that rolls back classroom assignments for all students by -1 semester.</p>
+            <p>Please enter the **Superuser password** to confirm the operation.</p>
+            <div class="form-group-custom text-dark">
+                <label class="form-label-custom text-dark" for="su_catchback_confirm_password">Superuser Password</label>
+                <input type="password" class="form-control-custom" id="su_catchback_confirm_password" placeholder="Verify password to proceed" required>
+            </div>
+        </div>
+        <div class="modal-footer-custom">
+            <button class="btn btn-custom btn-green-outline" onclick="closeCatchbackModal()">Abort</button>
+            <button class="btn btn-custom btn-warning text-dark" onclick="executeCatchback()">Confirm Catchback</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL 5: Edit Classroom Subjects -->
+<div class="modal-custom" id="editSubjectsModal">
+    <div class="modal-content-custom">
+        <div class="modal-header-custom">
+            <h3><i class="bi bi-journal-text me-2"></i>Edit Classroom Subjects</h3>
+            <button class="modal-close-btn" onclick="closeEditSubjectsModal()">&times;</button>
+        </div>
+        <div class="modal-body-custom">
+            <input type="hidden" id="edit_subjects_classroom_id">
+            <div class="mb-3">
+                <label class="small text-muted d-block text-dark">Target Classroom</label>
+                <span class="fw-bold fs-5 text-dark" id="editSubjectsClassroomName">-</span>
+            </div>
+            
+            <div class="mb-3 text-dark">
+                <label class="form-label-custom text-dark">Current Subjects</label>
+                <div id="classroomSubjectsList" class="d-flex flex-wrap gap-2 p-3 bg-light rounded-3 border">
+                    <!-- Loaded dynamically -->
+                </div>
+            </div>
+            
+            <hr>
+            
+            <form id="addSubjectForm" onsubmit="handleAddClassroomSubject(event)">
+                <div class="form-group-custom">
+                    <label class="form-label-custom text-dark" for="new_subject_name">Add New Subject</label>
+                    <div class="d-flex align-items-center gap-2">
+                        <input type="text" class="form-control-custom" id="new_subject_name" placeholder="e.g. Mobile Computing" required>
+                        <button type="submit" class="btn btn-custom btn-green">Add</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer-custom">
+            <button class="btn btn-custom btn-green-outline" onclick="closeEditSubjectsModal()">Close</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let classroomsList = [];
+    let adminsList = [];
+    let configuredCourses = [];
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadStats();
+        loadClassrooms();
+        loadAdmins();
+        loadConfiguredCoursesForClassroom();
+    });
+
+    function switchTab(tabId) {
+        const btns = document.querySelectorAll('.tab-btn');
+        btns.forEach(btn => btn.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+
+        const contents = document.querySelectorAll('.tab-content');
+        contents.forEach(content => content.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+    }
+
+    function loadStats() {
+        fetch('/api/superuser/stats')
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const s = data.stats;
+                document.getElementById('statsClassrooms').textContent = s.classrooms;
+                document.getElementById('statsStudents').textContent = s.students;
+                document.getElementById('statsAdmins').textContent = s.admins;
+                document.getElementById('statsNotes').textContent = s.notes;
+            }
+        })
+        .catch(err => console.error("Error loading stats:", err));
+    }
+
+    function loadClassrooms() {
+        fetch('/api/superuser/classrooms')
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                classroomsList = data.classrooms;
+                
+                // Render Classrooms Table
+                const tbody = document.getElementById('classroomsTableBody');
+                tbody.innerHTML = '';
+                
+                if (classroomsList.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">No classrooms defined.</td></tr>`;
+                    return;
+                }
+                
+                classroomsList.forEach(c => {
+                    const statusClass = c.status === 'active' ? 'badge-approved' : 'badge-blocked';
+                    const toggleBtnText = c.status === 'active' ? 'Pause' : 'Resume';
+                    const toggleBtnClass = c.status === 'active' ? 'btn-green-outline' : 'btn-saffron';
+                    const toggleBtnIcon = c.status === 'active' ? 'bi-pause-fill' : 'bi-play-fill';
+                    
+                    const subjectsListStr = c.subjects && c.subjects.length > 0 ? c.subjects.join(', ') : 'None';
+                    
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${escapeHTML(c.course)}</td>
+                        <td>${escapeHTML(c.branch)}</td>
+                        <td><span class="badge bg-success">Sem ${c.semester}</span><div class="small text-muted mt-1">Subs: ${escapeHTML(subjectsListStr)}</div></td>
+                        <td><span class="badge-custom ${statusClass}">${c.status}</span></td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-custom btn-outline-success py-1 px-2" onclick="openEditSubjectsModal(${c.id})">
+                                    <i class="bi bi-journal-text"></i> Subjects
+                                </button>
+                                <button class="btn btn-sm btn-custom ${toggleBtnClass} py-1 px-2" onclick="togglePauseClassroom(${c.id})">
+                                    <i class="bi ${toggleBtnIcon}"></i> ${toggleBtnText}
+                                </button>
+                                <button class="btn btn-sm btn-custom btn-danger-custom py-1 px-2" onclick="deleteClassroom(${c.id})">
+                                    <i class="bi bi-trash3-fill"></i> Delete
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                
+                populateClassroomsDropdowns();
+            }
+        })
+        .catch(err => console.error("Error loading classrooms:", err));
+    }
+
+    function togglePauseClassroom(id) {
+        const cls = classroomsList.find(c => c.id === id);
+        const actionStr = cls.status === 'active' ? 'pause' : 'resume';
+        
+        if (!confirm(`Are you sure you want to ${actionStr} this classroom? Students and admins of this classroom will have their logins temporarily suspended.`)) {
+            return;
+        }
+        
+        fetch('/api/superuser/classroom/toggle_pause', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ classroom_id: id })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                loadClassrooms();
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(err => console.error("Error toggling classroom status:", err));
+    }
+
+    function deleteClassroom(id) {
+        if (!confirm("Are you sure you want to permanently delete this classroom? WARNING: This will also delete all associated students, admins, and notes inside this classroom!")) {
+            return;
+        }
+        
+        fetch('/api/superuser/classroom/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ classroom_id: id })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                loadClassrooms();
+                loadStats();
+                loadAdmins();
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(err => console.error("Error deleting classroom:", err));
+    }
+
+    function populateClassroomsDropdowns() {
+        const dropdowns = [
+            document.getElementById('admin_classroom_id'),
+            document.getElementById('edit_admin_classroom_id')
+        ];
+        
+        dropdowns.forEach(dropdown => {
+            if (!dropdown) return;
+            dropdown.innerHTML = `<option value="">-- Select Classroom Target --</option>`;
+            
+            classroomsList.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = `${c.course} - ${c.branch} - Semester ${c.semester}`;
+                dropdown.appendChild(opt);
+            });
+        });
+    }
+
+    function loadAdmins() {
+        fetch('/api/superuser/admins')
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                adminsList = data.admins;
+                
+                const tbody = document.getElementById('adminsTableBody');
+                tbody.innerHTML = '';
+                
+                if (adminsList.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-muted">No admins registered yet.</td></tr>`;
+                    return;
+                }
+                
+                adminsList.forEach(admin => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${escapeHTML(admin.admin_name)}</strong></td>
+                        <td><code>${escapeHTML(admin.username)}</code></td>
+                        <td>${escapeHTML(admin.course)} (${escapeHTML(admin.branch)}) - Sem ${admin.semester}</td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-success" onclick="openEditAdminModal(${admin.id})">
+                                    <i class="bi bi-pencil-square"></i> Edit
+                                </button>
+                                <button class="btn btn-sm btn-custom btn-danger-custom py-1 px-2" onclick="deleteAdmin(${admin.id})">
+                                    <i class="bi bi-trash3-fill"></i> Delete
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+        })
+        .catch(err => console.error("Error loading admins:", err));
+    }
+
+    // --- Dynamic Chained Dropdowns for Classroom Creation ---
+    
+    function loadConfiguredCoursesForClassroom() {
+        fetch('/api/superuser/courses')
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                configuredCourses = data.courses;
+                
+                // Populate Create Classroom course dropdown
+                const classCourseSel = document.getElementById('class_course');
+                classCourseSel.innerHTML = '<option value="">-- Choose Course --</option>';
+                
+                // Also populate branch_course_select in courseConfig tab
+                const branchCourseSel = document.getElementById('branch_course_select');
+                branchCourseSel.innerHTML = '<option value="">-- Choose Course --</option>';
+
+                configuredCourses.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.course_name;
+                    opt.dataset.id = c.id;
+                    opt.textContent = c.course_name;
+                    classCourseSel.appendChild(opt);
+
+                    const opt2 = document.createElement('option');
+                    opt2.value = c.id;
+                    opt2.textContent = c.course_name;
+                    branchCourseSel.appendChild(opt2);
+                });
+            }
+        })
+        .catch(err => console.error("Error loading configured courses:", err));
+    }
+
+    function handleCourseChange() {
+        const classCourseSel = document.getElementById('class_course');
+        const selectedOpt = classCourseSel.options[classCourseSel.selectedIndex];
+        const classBranchSel = document.getElementById('class_branch');
+        const classSemSel = document.getElementById('class_semester');
+        
+        classBranchSel.innerHTML = '<option value="">-- Choose Branch --</option>';
+        classSemSel.innerHTML = '<option value="">-- Choose Semester --</option>';
+        
+        if (!selectedOpt || !selectedOpt.value) return;
+        
+        const courseId = selectedOpt.dataset.id;
+        const courseObj = configuredCourses.find(c => c.id == courseId);
+        
+        // 1. Populate semesters dropdown
+        if (courseObj) {
+            for (let i = 1; i <= courseObj.total_semesters; i++) {
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.textContent = `Semester ${i}`;
+                classSemSel.appendChild(opt);
+            }
+        }
+        
+        // 2. Fetch branches for the selected course
+        fetch(`/api/superuser/course/branches/${courseId}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                data.branches.forEach(b => {
+                    const opt = document.createElement('option');
+                    opt.value = b.branch_name;
+                    opt.textContent = b.branch_name;
+                    classBranchSel.appendChild(opt);
+                });
+            }
+        })
+        .catch(err => console.error("Error fetching branches:", err));
+    }
+
+    function handleCreateClassroom(event) {
+        event.preventDefault();
+        
+        const payload = {
+            course: document.getElementById('class_course').value,
+            branch: document.getElementById('class_branch').value,
+            semester: parseInt(document.getElementById('class_semester').value),
+            subjects: document.getElementById('class_subjects').value.trim()
+        };
+        
+        fetch('/api/superuser/classroom/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('createClassroomForm').reset();
+                // Clear dropdowns
+                document.getElementById('class_branch').innerHTML = '<option value="">-- Choose Branch --</option>';
+                document.getElementById('class_semester').innerHTML = '<option value="">-- Choose Semester --</option>';
+                loadClassrooms();
+                loadStats();
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(err => console.error("Error creating classroom:", err));
+    }
+
+    // --- Course Configurations Tab Handlers ---
+
+    function loadConfiguredCoursesDirectory() {
+        const container = document.getElementById('courseDirectory');
+        container.innerHTML = '<p class="text-muted text-center py-3">Loading directory...</p>';
+        
+        fetch('/api/superuser/courses')
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                configuredCourses = data.courses;
+                if (configuredCourses.length === 0) {
+                    container.innerHTML = '<p class="text-muted text-center py-3">No courses configured yet.</p>';
+                    return;
+                }
+                
+                container.innerHTML = '';
+                
+                // Use a counter for unique ids in accordion items
+                let index = 0;
+                
+                // Iterate courses and render accordion cards
+                configuredCourses.forEach(course => {
+                    const card = document.createElement('div');
+                    card.className = 'card border-success border-opacity-10 mb-3 rounded-3 overflow-hidden shadow-sm';
+                    
+                    const headId = `heading-${index}`;
+                    const collapseId = `collapse-${index}`;
+                    
+                    card.innerHTML = `
+                        <div class="card-header bg-success bg-opacity-10 py-3 d-flex justify-content-between align-items-center" id="${headId}">
+                            <div>
+                                <h6 class="fw-bold mb-0 text-success">${escapeHTML(course.course_name)}</h6>
+                                <span class="small text-muted">${course.total_semesters} Semesters Limit</span>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-success" onclick="toggleAccordion('${collapseId}')">
+                                    <i class="bi bi-eye-fill"></i> Branches
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteCourse(${course.id})">
+                                    <i class="bi bi-trash-fill"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="${collapseId}" class="collapse" style="display: none;">
+                            <div class="card-body bg-white py-3">
+                                <div id="branches-list-${course.id}" class="d-flex flex-wrap gap-2 mb-2">
+                                    <span class="text-muted small">Loading branches...</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                    
+                    // Fetch branches inside accordion card
+                    loadBranchesForAccordion(course.id);
+                    index++;
+                });
+            }
+        })
+        .catch(err => console.error("Error building directory:", err));
+    }
+
+    function toggleAccordion(id) {
+        const target = document.getElementById(id);
+        if (target.style.display === 'none') {
+            target.style.display = 'block';
+        } else {
+            target.style.display = 'none';
+        }
+    }
+
+    function loadBranchesForAccordion(courseId) {
+        const branchBox = document.getElementById(`branches-list-${courseId}`);
+        fetch(`/api/superuser/course/branches/${courseId}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                branchBox.innerHTML = '';
+                if (data.branches.length === 0) {
+                    branchBox.innerHTML = '<span class="text-secondary small">No branches configured.</span>';
+                    return;
+                }
+                data.branches.forEach(b => {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge-custom bg-light border text-dark d-inline-flex align-items-center gap-2 px-2 py-1';
+                    badge.innerHTML = `
+                        ${escapeHTML(b.branch_name)}
+                        <i class="bi bi-x-circle-fill text-danger cursor-pointer" onclick="deleteBranch(${b.id}, ${courseId})" style="cursor: pointer;"></i>
+                    `;
+                    branchBox.appendChild(badge);
+                });
+            }
+        })
+        .catch(err => console.error("Error loading branches for accordion:", err));
+    }
+
+    function handleAddCourse(event) {
+        event.preventDefault();
+        const payload = {
+            course_name: document.getElementById('conf_course_name').value.trim(),
+            total_semesters: parseInt(document.getElementById('conf_total_semesters').value)
+        };
+        
+        fetch('/api/superuser/course/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('addCourseForm').reset();
+                loadConfiguredCoursesDirectory();
+                loadConfiguredCoursesForClassroom();
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(err => console.error("Error adding course config:", err));
+    }
+
+    function handleAddBranch(event) {
+        event.preventDefault();
+        const payload = {
+            course_id: parseInt(document.getElementById('branch_course_select').value),
+            branch_name: document.getElementById('conf_branch_name').value.trim()
+        };
+        
+        fetch('/api/superuser/course/branch/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('addBranchForm').reset();
+                loadConfiguredCoursesDirectory();
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(err => console.error("Error adding branch config:", err));
+    }
+
+    function deleteCourse(id) {
+        if (!confirm("Are you sure you want to delete this configured course? Doing so will delete all branches configured under it. (Does not affect existing classrooms).")) {
+            return;
+        }
+        fetch('/api/superuser/course/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ course_id: id })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                loadConfiguredCoursesDirectory();
+                loadConfiguredCoursesForClassroom();
+            }
+        })
+        .catch(err => console.error("Error deleting course configuration:", err));
+    }
+
+    function deleteBranch(id, courseId) {
+        if (!confirm("Delete this configured branch?")) {
+            return;
+        }
+        fetch('/api/superuser/course/branch/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ branch_id: id })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                loadBranchesForAccordion(courseId);
+            }
+        })
+        .catch(err => console.error("Error deleting branch configuration:", err));
+    }
+
+    // --- System Analytics Loader ---
+
+    function loadSystemAnalytics() {
+        fetch('/api/superuser/analytics')
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const a = data.analytics;
+                document.getElementById('sysStatTotalViews').textContent = a.total_views;
+                document.getElementById('sysStatActiveStudents').textContent = a.active_students;
+                document.getElementById('sysStatTotalNotes').textContent = a.total_notes;
+                
+                // Populate classrooms activity
+                const classroomsTbody = document.getElementById('activeClassroomsBody');
+                classroomsTbody.innerHTML = '';
+                if (a.active_classrooms.length === 0) {
+                    classroomsTbody.innerHTML = '<tr><td colspan="2" class="text-center py-3 text-muted">No note views recorded yet.</td></tr>';
+                } else {
+                    a.active_classrooms.forEach(c => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td><strong>${escapeHTML(c.course)} - ${escapeHTML(c.branch)} - Sem ${c.semester}</strong></td>
+                            <td><span class="badge bg-success px-2 py-1">${c.views} Views</span></td>
+                        `;
+                        classroomsTbody.appendChild(tr);
+                    });
+                }
+                
+                // Populate top viewed notes
+                const notesTbody = document.getElementById('sysPopularNotesBody');
+                notesTbody.innerHTML = '';
+                if (a.popular_notes.length === 0) {
+                    notesTbody.innerHTML = '<tr><td colspan="3" class="text-center py-3 text-muted">No note views recorded yet.</td></tr>';
+                } else {
+                    a.popular_notes.forEach(n => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td><strong>${escapeHTML(n.subject)}</strong></td>
+                            <td>${escapeHTML(n.course)} (${escapeHTML(n.branch)})</td>
+                            <td><span class="badge bg-success px-2 py-1">${n.views} Views</span></td>
+                        `;
+                        notesTbody.appendChild(tr);
+                    });
+                }
+            }
+        })
+        .catch(err => console.error("System analytics error:", err));
+    }
+
+
+    // Modal Control: Create Admin
+    function openCreateAdminModal() {
+        document.getElementById('createAdminModal').style.display = 'flex';
+    }
+    function closeCreateAdminModal() {
+        document.getElementById('createAdminModal').style.display = 'none';
+        document.getElementById('createAdminForm').reset();
+    }
+    
+    function handleCreateAdmin(event) {
+        event.preventDefault();
+        
+        const payload = {
+            admin_name: document.getElementById('admin_name').value.trim(),
+            username: document.getElementById('admin_username').value.trim(),
+            password: document.getElementById('admin_password').value,
+            classroom_id: parseInt(document.getElementById('admin_classroom_id').value)
+        };
+        
+        fetch('/api/superuser/admin/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                closeCreateAdminModal();
+                loadAdmins();
+                loadStats();
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(err => console.error("Error creating admin:", err));
+    }
+
+    // Modal Control: Edit Admin
+    function openEditAdminModal(adminId) {
+        const admin = adminsList.find(a => a.id === adminId);
+        if (!admin) return;
+        
+        document.getElementById('edit_admin_id').value = admin.id;
+        document.getElementById('edit_admin_name').value = admin.admin_name;
+        document.getElementById('edit_admin_username').value = admin.username;
+        document.getElementById('edit_admin_classroom_id').value = admin.classroom_id;
+        document.getElementById('edit_admin_password').value = '';
+        
+        document.getElementById('editAdminModal').style.display = 'flex';
+    }
+    function closeEditAdminModal() {
+        document.getElementById('editAdminModal').style.display = 'none';
+        document.getElementById('editAdminForm').reset();
+    }
+    
+    function handleEditAdmin(event) {
+        event.preventDefault();
+        
+        const payload = {
+            admin_id: parseInt(document.getElementById('edit_admin_id').value),
+            admin_name: document.getElementById('edit_admin_name').value.trim(),
+            username: document.getElementById('edit_admin_username').value.trim(),
+            classroom_id: parseInt(document.getElementById('edit_admin_classroom_id').value)
+        };
+        
+        const pass = document.getElementById('edit_admin_password').value;
+        if (pass) {
+            payload.password = pass;
+        }
+        
+        fetch('/api/superuser/admin/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                closeEditAdminModal();
+                loadAdmins();
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(err => console.error("Error editing admin:", err));
+    }
+
+    function deleteAdmin(id) {
+        if (!confirm("Are you sure you want to permanently delete this Admin? All notes uploaded by them will also be deleted.")) {
+            return;
+        }
+        
+        fetch('/api/superuser/admin/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ admin_id: id })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                loadAdmins();
+                loadStats();
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(err => console.error("Error deleting admin:", err));
+    }
+
+    // Modal Control: Semester Promotion
+    function openPromotionModal() {
+        document.getElementById('promoteModal').style.display = 'flex';
+    }
+    function closePromotionModal() {
+        document.getElementById('promoteModal').style.display = 'none';
+        document.getElementById('su_confirm_password').value = '';
+    }
+    
+    function executePromotion() {
+        const pass = document.getElementById('su_confirm_password').value;
+        if (!pass) {
+            alert("Please enter the superuser password to confirm.");
+            return;
+        }
+        
+        fetch('/api/superuser/promote', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ superuser_password: pass })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                closePromotionModal();
+                loadStats();
+                loadClassrooms();
+                loadAdmins();
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(err => console.error("Error executing promotion:", err));
+    }
+
+    // Modal Control: Catchback
+    function openCatchbackModal() {
+        document.getElementById('catchbackModal').style.display = 'flex';
+    }
+    function closeCatchbackModal() {
+        document.getElementById('catchbackModal').style.display = 'none';
+        document.getElementById('su_catchback_confirm_password').value = '';
+    }
+    
+    function executeCatchback() {
+        const pass = document.getElementById('su_catchback_confirm_password').value;
+        if (!pass) {
+            alert("Please enter the superuser password to confirm.");
+            return;
+        }
+        
+        fetch('/api/superuser/catchback', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ superuser_password: pass })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                closeCatchbackModal();
+                loadStats();
+                loadClassrooms();
+                loadAdmins();
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(err => console.error("Error executing catchback:", err));
+    }
+
+    // Modal Control: Edit Classroom Subjects
+    function openEditSubjectsModal(classId) {
+        const cls = classroomsList.find(c => c.id === classId);
+        if (!cls) return;
+        
+        document.getElementById('edit_subjects_classroom_id').value = classId;
+        document.getElementById('editSubjectsClassroomName').textContent = `${cls.course} - ${cls.branch} - Sem ${cls.semester}`;
+        document.getElementById('new_subject_name').value = '';
+        
+        loadClassroomSubjects(classId);
+        document.getElementById('editSubjectsModal').style.display = 'flex';
+    }
+    
+    function closeEditSubjectsModal() {
+        document.getElementById('editSubjectsModal').style.display = 'none';
+    }
+    
+    function loadClassroomSubjects(classId) {
+        const container = document.getElementById('classroomSubjectsList');
+        container.innerHTML = '<span class="text-secondary small">Loading subjects...</span>';
+        
+        fetch(`/api/superuser/classroom/${classId}/subjects`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                container.innerHTML = '';
+                if (data.subjects.length === 0) {
+                    container.innerHTML = '<span class="text-secondary small">No subjects configured for this classroom.</span>';
+                    return;
+                }
+                data.subjects.forEach(sub => {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge bg-success text-white d-inline-flex align-items-center gap-2 px-2 py-1 small';
+                    badge.innerHTML = `
+                        ${escapeHTML(sub)}
+                        <i class="bi bi-x-circle-fill text-white cursor-pointer" onclick="deleteClassroomSubject('${escapeJS(sub)}')" style="cursor: pointer;"></i>
+                    `;
+                    container.appendChild(badge);
+                });
+            }
+        })
+        .catch(err => console.error("Error loading classroom subjects:", err));
+    }
+    
+    function deleteClassroomSubject(subjectName) {
+        const classId = parseInt(document.getElementById('edit_subjects_classroom_id').value);
+        if (!confirm(`Are you sure you want to remove the subject "${subjectName}" from this classroom?`)) {
+            return;
+        }
+        
+        fetch(`/api/superuser/classroom/${classId}/subject/delete`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ subject_name: subjectName })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                loadClassroomSubjects(classId);
+                loadClassrooms();
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(err => console.error("Error deleting subject:", err));
+    }
+    
+    function handleAddClassroomSubject(event) {
+        event.preventDefault();
+        const classId = parseInt(document.getElementById('edit_subjects_classroom_id').value);
+        const subName = document.getElementById('new_subject_name').value.trim();
+        
+        if (!subName) return;
+        
+        fetch(`/api/superuser/classroom/${classId}/subject/add`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ subject_name: subName })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('new_subject_name').value = '';
+                loadClassroomSubjects(classId);
+                loadClassrooms();
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(err => console.error("Error adding subject:", err));
+    }
+
+    function escapeJS(str) {
+        if (!str) return '';
+        return str.replace(/'/g, "\\'");
+    }
+
+    function escapeHTML(str) {
+        if (!str) return '';
+        return str.replace(/[&<>'"]/g, 
+            tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+        );
+    }
+</script>
+{% endblock %}

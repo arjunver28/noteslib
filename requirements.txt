@@ -1,0 +1,14 @@
+# Web Framework (strictly compatible with Python 3.8.17; Flask 3.1+ dropped Python 3.8)
+Flask>=2.3.0,<3.1.0
+Werkzeug>=2.3.0,<3.1.0
+
+# Database Drivers (100% Pure Python, zero glibc/C dependencies, ideal for ClearOS 7 / CentOS 7)
+PyMySQL>=1.0.2,<2.0.0
+DBUtils>=3.0.0,<4.0.0
+
+# Production WSGI Server (Pure Python, standard for ClearOS 7 / Linux deployment)
+gunicorn>=20.1.0,<22.0.0
+
+# Optional: Excel reader (not strictly required at runtime since cslist.json is pre-parsed)
+openpyxl>=3.0.10,<3.2.0
+

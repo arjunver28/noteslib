@@ -1,0 +1,348 @@
+{% extends "base.html" %}
+
+{% block title %}Login / Register - Notes Library{% endblock %}
+
+{% block content %}
+<div class="login-container animate-fade-in-up">
+    <div class="login-split-card">
+        
+        <!-- Left Side: Branding Hero -->
+        <div class="login-brand-side">
+            <div class="login-brand-logo">
+                <img src="https://sug.ac.in/images/logo.png" alt="Shobhit University logo">
+            </div>
+            
+            <div class="login-brand-text">
+                <h2>Notes Library Portal</h2>
+                <p>Welcome to the official digital academic resource sharing repository of <span>Shobhit University, Gangoh</span>.</p>
+                <p class="mt-3 small text-white-50"><i class="bi bi-quote me-1"></i>Tejasvi Navadhitamastu (May our learning be brilliant and effective)</p>
+            </div>
+            
+            <div class="small">
+                <i class="bi bi-shield-check me-2 text-warning"></i>Secure SSL Academic Gateway
+            </div>
+        </div>
+        
+        <!-- Right Side: Forms -->
+        <div class="login-form-side">
+            
+            <!-- Login Forms Panel -->
+            <div id="loginFormsPanel">
+                <h3 class="fw-bold text-center mb-4" style="color: var(--primary-green);">Sign In</h3>
+                
+                <!-- Role Selector Tabs -->
+                <div class="login-tab-wrapper">
+                    <button class="login-tab-btn active" onclick="switchLoginTab('student')">Student</button>
+                    <button class="login-tab-btn" onclick="switchLoginTab('admin')">Admin</button>
+                    <button class="login-tab-btn" onclick="switchLoginTab('superuser')">Superuser</button>
+                </div>
+                
+                <div id="alertMessage" class="alert alert-danger d-none py-2 px-3 mb-3" role="alert"></div>
+                
+                <!-- Student Login Form -->
+                <form id="studentLoginForm" onsubmit="handleLogin(event, 'student')">
+                    <div class="form-group-custom">
+                        <label class="form-label-custom" for="student_roll">Roll Number</label>
+                        <input type="text" class="form-control-custom" id="student_roll" required placeholder="e.g. SUG2301045">
+                    </div>
+                    <div class="form-group-custom">
+                        <label class="form-label-custom" for="student_password">Password</label>
+                        <input type="password" class="form-control-custom" id="student_password" required placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="btn btn-custom btn-green w-100 py-3 mt-2">
+                        <i class="bi bi-box-arrow-in-right"></i> Sign In as Student
+                    </button>
+                    <div class="text-center mt-3">
+                        <span class="text-secondary small">New Student? <a href="#" class="text-decoration-none fw-bold" style="color: var(--saffron-orange);" onclick="showRegisterPanel(true)">Register here</a></span>
+                    </div>
+                </form>
+                
+                <!-- Admin Login Form -->
+                <form id="adminLoginForm" class="d-none" onsubmit="handleLogin(event, 'admin')">
+                    <div class="form-group-custom">
+                        <label class="form-label-custom" for="admin_user">Username</label>
+                        <input type="text" class="form-control-custom" id="admin_user" placeholder="Enter Admin Username">
+                    </div>
+                    <div class="form-group-custom">
+                        <label class="form-label-custom" for="admin_password">Password</label>
+                        <input type="password" class="form-control-custom" id="admin_password" placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="btn btn-custom btn-green w-100 py-3 mt-2">
+                        <i class="bi bi-box-arrow-in-right"></i> Sign In as Admin
+                    </button>
+                </form>
+                
+                <!-- Superuser Login Form -->
+                <form id="superuserLoginForm" class="d-none" onsubmit="handleLogin(event, 'superuser')">
+                    <div class="form-group-custom">
+                        <label class="form-label-custom" for="su_user">Superuser Username</label>
+                        <input type="text" class="form-control-custom" id="su_user" placeholder="Enter Superuser Username">
+                    </div>
+                    <div class="form-group-custom">
+                        <label class="form-label-custom" for="su_password">Password</label>
+                        <input type="password" class="form-control-custom" id="su_password" placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="btn btn-custom btn-saffron w-100 py-3 mt-2">
+                        <i class="bi bi-shield-lock"></i> Sign In as Superuser
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Registration Form Panel -->
+            <div id="registerPanel" class="d-none">
+                <h3 class="fw-bold text-center mb-4" style="color: var(--primary-green);">Student Registration</h3>
+                
+                <div id="registerAlert" class="alert d-none py-2 px-3 mb-3" role="alert"></div>
+                
+                <form id="registerForm" onsubmit="handleRegister(event)">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group-custom">
+                                <label class="form-label-custom" for="reg_roll">Roll Number</label>
+                                <input type="text" class="form-control-custom" id="reg_roll" required placeholder="e.g. SUG2301045">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group-custom">
+                                <label class="form-label-custom" for="reg_name">Full Name</label>
+                                <input type="text" class="form-control-custom" id="reg_name" required placeholder="Enter your full name">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group-custom">
+                        <label class="form-label-custom" for="reg_contact">Contact Number</label>
+                        <input type="tel" class="form-control-custom" id="reg_contact" required placeholder="Enter 10-digit contact number" pattern="\d{10}" maxlength="10" minlength="10" title="Contact number must be exactly 10 digits">
+                    </div>
+                    
+                    <div class="form-group-custom">
+                        <label class="form-label-custom" for="reg_classroom">Classroom Assignment</label>
+                        <select class="form-control-custom" id="reg_classroom" required>
+                            <option value="">Loading active classrooms...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group-custom">
+                        <label class="form-label-custom" for="reg_password">Password</label>
+                        <input type="password" class="form-control-custom" id="reg_password" required placeholder="Choose a secure password">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-custom btn-green w-100 py-3 mt-2">
+                        <i class="bi bi-person-check-fill"></i> Register Student Account
+                    </button>
+                    <div class="text-center mt-3">
+                        <span class="text-secondary small">Already registered? <a href="#" class="text-decoration-none fw-bold" style="color: var(--primary-green);" onclick="showRegisterPanel(false)">Sign In here</a></span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let activeRole = 'student';
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const rollInput = document.getElementById('reg_roll');
+        if (rollInput) {
+            rollInput.addEventListener('input', function(e) {
+                const roll = e.target.value.trim().toUpperCase();
+                const nameInput = document.getElementById('reg_name');
+                const alertDiv = document.getElementById('registerAlert');
+                
+                if (roll.length >= 4) {
+                    fetch(`/api/student/lookup/${roll}`)
+                    .then(res => {
+                        if (!res.ok) throw new Error("Not found");
+                        return res.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            nameInput.value = data.name;
+                            nameInput.readOnly = true;
+                            alertDiv.classList.add('d-none');
+                        }
+                    })
+                    .catch(err => {
+                        nameInput.value = '';
+                        nameInput.readOnly = false;
+                        alertDiv.className = "alert alert-warning py-2 px-3 mb-3";
+                        alertDiv.textContent = "Roll Number not found in Shobhit University roster.";
+                        alertDiv.classList.remove('d-none');
+                    });
+                } else {
+                    nameInput.value = '';
+                    nameInput.readOnly = false;
+                    alertDiv.classList.add('d-none');
+                }
+            });
+        }
+    });
+
+    function switchLoginTab(role) {
+        activeRole = role;
+        
+        // Update tab buttons
+        const tabs = document.querySelectorAll('.login-tab-btn');
+        tabs.forEach((tab, index) => {
+            tab.classList.remove('active');
+            if ((role === 'student' && index === 0) || 
+                (role === 'admin' && index === 1) || 
+                (role === 'superuser' && index === 2)) {
+                tab.classList.add('active');
+            }
+        });
+
+        // Hide all login forms
+        document.getElementById('studentLoginForm').classList.add('d-none');
+        document.getElementById('adminLoginForm').classList.add('d-none');
+        document.getElementById('superuserLoginForm').classList.add('d-none');
+
+        // Show selected login form
+        if (role === 'student') {
+            document.getElementById('studentLoginForm').classList.remove('d-none');
+        } else if (role === 'admin') {
+            document.getElementById('adminLoginForm').classList.remove('d-none');
+        } else if (role === 'superuser') {
+            document.getElementById('superuserLoginForm').classList.remove('d-none');
+        }
+        
+        // Hide alerts
+        document.getElementById('alertMessage').classList.add('d-none');
+    }
+
+    function showRegisterPanel(show) {
+        if (show) {
+            document.getElementById('loginFormsPanel').classList.add('d-none');
+            document.getElementById('registerPanel').classList.remove('d-none');
+            document.getElementById('registerAlert').classList.add('d-none');
+            loadActiveClassrooms();
+        } else {
+            document.getElementById('loginFormsPanel').classList.remove('d-none');
+            document.getElementById('registerPanel').classList.add('d-none');
+            document.getElementById('alertMessage').classList.add('d-none');
+        }
+    }
+
+    function loadActiveClassrooms() {
+        const select = document.getElementById('reg_classroom');
+        select.innerHTML = '<option value="">Loading active classrooms...</option>';
+        
+        fetch('/api/classrooms/active')
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                select.innerHTML = '<option value="">-- Choose Course, Branch & Semester --</option>';
+                data.classrooms.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id;
+                    opt.textContent = `${c.course} - ${c.branch} - Semester ${c.semester}`;
+                    select.appendChild(opt);
+                });
+            } else {
+                select.innerHTML = '<option value="">Error loading classrooms</option>';
+            }
+        })
+        .catch(err => {
+            console.error("Error loading active classrooms:", err);
+            select.innerHTML = '<option value="">Failed to load classrooms</option>';
+        });
+    }
+
+    function handleLogin(event, role) {
+        event.preventDefault();
+        const alertDiv = document.getElementById('alertMessage');
+        alertDiv.classList.add('d-none');
+        
+        let payload = { role: role };
+        
+        if (role === 'student') {
+            payload.roll_number = document.getElementById('student_roll').value.trim();
+            payload.password = document.getElementById('student_password').value;
+        } else if (role === 'admin') {
+            payload.username = document.getElementById('admin_user').value.trim();
+            payload.password = document.getElementById('admin_password').value;
+        } else if (role === 'superuser') {
+            payload.username = document.getElementById('su_user').value.trim();
+            payload.password = document.getElementById('su_password').value;
+        }
+
+        fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(response => {
+            return response.json().then(data => {
+                if (response.ok) {
+                    window.location.href = data.redirect;
+                } else {
+                    alertDiv.textContent = data.message || "Authentication failed.";
+                    alertDiv.classList.remove('d-none');
+                }
+            });
+        })
+        .catch(err => {
+            console.error("Login error:", err);
+            alertDiv.textContent = "Server communication failure.";
+            alertDiv.classList.remove('d-none');
+        });
+    }
+
+    function handleRegister(event) {
+        event.preventDefault();
+        const alertDiv = document.getElementById('registerAlert');
+        alertDiv.classList.add('d-none');
+        alertDiv.className = "alert py-2 px-3 mb-3"; // Reset colors
+        
+        const contactVal = document.getElementById('reg_contact').value.trim();
+        if (!/^\d{10}$/.test(contactVal)) {
+            alertDiv.classList.add('alert-danger');
+            alertDiv.textContent = "Contact number must be exactly 10 digits.";
+            alertDiv.classList.remove('d-none');
+            return;
+        }
+
+        const payload = {
+            roll_number: document.getElementById('reg_roll').value.trim(),
+            name: document.getElementById('reg_name').value.trim(),
+            contact: contactVal,
+            classroom_id: parseInt(document.getElementById('reg_classroom').value),
+            password: document.getElementById('reg_password').value
+        };
+
+        fetch('/api/student/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(response => {
+            return response.json().then(data => {
+                if (response.ok) {
+                    alertDiv.classList.add('alert-success');
+                    alertDiv.textContent = data.message;
+                    alertDiv.classList.remove('d-none');
+                    document.getElementById('registerForm').reset();
+                    // Auto redirect to login panel after 3 seconds
+                    setTimeout(() => {
+                        showRegisterPanel(false);
+                    }, 3500);
+                } else {
+                    alertDiv.classList.add('alert-danger');
+                    alertDiv.textContent = data.message || "Registration failed.";
+                    alertDiv.classList.remove('d-none');
+                }
+            });
+        })
+        .catch(err => {
+            console.error("Register error:", err);
+            alertDiv.classList.add('alert-danger');
+            alertDiv.textContent = "Server communication failure.";
+            alertDiv.classList.remove('d-none');
+        });
+    }
+</script>
+{% endblock %}

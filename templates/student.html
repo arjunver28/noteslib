@@ -1,0 +1,328 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard - Notes Library{% endblock %}
+
+{% block content %}
+<!-- Welcome Banner -->
+<div class="welcome-banner animate-fade-in-up">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h1 class="mb-2">Hello, <span id="studentWelcomeName">Student</span>!</h1>
+            <p class="mb-0">Access all note resources for your assigned classroom. Keep learning and expanding your horizons.</p>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <span class="badge-custom badge-approved px-3 py-2 fs-6 shadow-sm">
+                <i class="bi bi-patch-check-fill me-1"></i> Verified Student
+            </span>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Left Column: Profile Card -->
+    <div class="col-lg-3 mb-4 animate-fade-in-up" style="animation-delay: 0.1s;">
+        <div class="glass-card h-100">
+            <h4 class="fw-bold mb-4 pb-2 border-bottom text-success" style="color: var(--primary-green) !important;">
+                <i class="bi bi-person-badge me-2"></i>My Profile
+            </h4>
+            
+            <div class="mb-3">
+                <label class="small text-muted d-block">Full Name</label>
+                <span class="fw-bold fs-5" id="profileName">-</span>
+            </div>
+            <div class="mb-3">
+                <label class="small text-muted d-block">Roll Number</label>
+                <span class="fw-semibold" id="profileRoll">-</span>
+            </div>
+            <div class="mb-3">
+                <label class="small text-muted d-block">Contact Number</label>
+                <span id="profileContact">-</span>
+            </div>
+            <div class="mb-3">
+                <label class="small text-muted d-block">Course & Branch</label>
+                <span class="fw-semibold" id="profileClassroom">-</span>
+            </div>
+            <div class="mb-3">
+                <label class="small text-muted d-block">Current Semester</label>
+                <span class="badge bg-success py-2 px-3 fw-bold fs-6" id="profileSemester" style="background-color: var(--primary-green) !important;">-</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Column: Notes List -->
+    <div class="col-lg-9 mb-4 animate-fade-in-up" style="animation-delay: 0.2s;">
+        <div class="glass-card h-100">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-3">
+                <h4 class="fw-bold mb-0 text-success" style="color: var(--primary-green) !important;">
+                    <i class="bi bi-journal-bookmark-fill me-2"></i>Classroom Notes Library
+                </h4>
+                
+                <!-- Search Bar -->
+                <div class="position-relative w-100" style="max-width: 380px;">
+                    <input type="text" class="form-control-custom ps-5" id="notesSearchInput" oninput="filterNotes()" placeholder="Search by creator name or roll no...">
+                    <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                </div>
+            </div>
+
+            <!-- Student Note Tabs -->
+            <div class="tabs-navigation mb-3">
+                <button class="tab-btn active" id="btnTabAllNotes" onclick="switchStudentTab('all')">
+                    <i class="bi bi-journals me-2"></i>All Notes
+                </button>
+                <button class="tab-btn" id="btnTabFavourites" onclick="switchStudentTab('favourites')">
+                    <i class="bi bi-star-fill me-2 text-warning"></i>Favourites
+                </button>
+            </div>
+
+            <!-- Subject navigation badges -->
+            <div id="subjectFilters" class="mb-3 d-flex flex-wrap gap-2">
+                <!-- Dynamically loaded subjects list -->
+            </div>
+            
+            <!-- Notes Grid -->
+            <div class="notes-grid" id="notesGrid">
+                <!-- Dynamically loaded -->
+            </div>
+            
+            <!-- Empty State -->
+            <div class="text-center py-5 d-none animate-fade-in" id="emptyState">
+                <img src="https://img.icons8.com/isometric/100/null/open-book.png" alt="No Notes" class="mb-3">
+                <h5 class="fw-bold text-secondary">No Notes Found</h5>
+                <p class="text-muted small" id="emptyStateText">No notes match the filters selected.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let allNotes = [];
+    let activeStudentTab = 'all'; // 'all' or 'favourites'
+    let activeSubjectFilter = 'All';
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadProfile();
+        loadNotes();
+    });
+
+    function loadProfile() {
+        fetch('/api/student/profile')
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const prof = data.profile;
+                document.getElementById('studentWelcomeName').textContent = prof.name;
+                document.getElementById('profileName').textContent = prof.name;
+                document.getElementById('profileRoll').textContent = prof.roll_number;
+                document.getElementById('profileContact').textContent = prof.contact;
+                document.getElementById('profileClassroom').textContent = `${prof.course} (${prof.branch})`;
+                document.getElementById('profileSemester').textContent = "Semester " + prof.semester;
+            }
+        })
+        .catch(err => console.error("Profile load error:", err));
+    }
+
+    function loadNotes() {
+        fetch('/api/student/notes')
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                allNotes = data.notes;
+                rebuildSubjectFilters();
+                renderNotes(getFilteredNotes());
+            }
+        })
+        .catch(err => console.error("Notes load error:", err));
+    }
+
+    function rebuildSubjectFilters() {
+        const container = document.getElementById('subjectFilters');
+        container.innerHTML = '';
+        
+        // Find unique subjects
+        const subjects = ['All'];
+        allNotes.forEach(n => {
+            if (!subjects.includes(n.subject)) {
+                subjects.push(n.subject);
+            }
+        });
+        
+        subjects.forEach(sub => {
+            const span = document.createElement('span');
+            span.className = `filter-subject-badge badge-custom ${sub === activeSubjectFilter ? 'bg-success text-white active' : 'bg-white text-secondary'} border px-3 py-2`;
+            span.dataset.subject = sub;
+            span.textContent = sub;
+            span.style.cursor = 'pointer';
+            span.style.transition = 'var(--transition-smooth)';
+            span.onclick = () => filterBySubject(sub);
+            container.appendChild(span);
+        });
+    }
+
+    function switchStudentTab(tab) {
+        activeStudentTab = tab;
+        document.getElementById('btnTabAllNotes').classList.remove('active');
+        document.getElementById('btnTabFavourites').classList.remove('active');
+        if (tab === 'all') {
+            document.getElementById('btnTabAllNotes').classList.add('active');
+        } else {
+            document.getElementById('btnTabFavourites').classList.add('active');
+        }
+        renderNotes(getFilteredNotes());
+    }
+
+    function filterBySubject(sub) {
+        activeSubjectFilter = sub;
+        const badges = document.querySelectorAll('.filter-subject-badge');
+        badges.forEach(b => {
+            b.classList.remove('active', 'bg-success', 'text-white');
+            b.classList.add('bg-white', 'text-secondary');
+            if (b.dataset.subject === sub) {
+                b.classList.remove('bg-white', 'text-secondary');
+                b.classList.add('active', 'bg-success', 'text-white');
+            }
+        });
+        renderNotes(getFilteredNotes());
+    }
+
+    function getFilteredNotes() {
+        let list = allNotes;
+        if (activeStudentTab === 'favourites') {
+            list = list.filter(n => n.is_favourite === 1);
+        }
+        if (activeSubjectFilter !== 'All') {
+            list = list.filter(n => n.subject === activeSubjectFilter);
+        }
+        return list;
+    }
+
+    function toggleFavourite(noteId) {
+        fetch('/api/student/favourite/toggle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ note_id: noteId })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                // Update local state
+                const note = allNotes.find(n => n.id === noteId);
+                if (note) {
+                    note.is_favourite = data.favourited ? 1 : 0;
+                }
+                renderNotes(getFilteredNotes());
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(err => console.error("Error toggling favorite:", err));
+    }
+
+    function copyShareLink(filePath) {
+        const fullUrl = window.location.origin + '/' + filePath;
+        navigator.clipboard.writeText(fullUrl).then(() => {
+            alert("Notes share link copied to clipboard!");
+        }).catch(err => {
+            console.error("Failed to copy link:", err);
+            // fallback
+            const tempInput = document.createElement("input");
+            tempInput.value = fullUrl;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempInput);
+            alert("Notes share link copied to clipboard!");
+        });
+    }
+
+    function renderNotes(notes) {
+        const grid = document.getElementById('notesGrid');
+        const empty = document.getElementById('emptyState');
+        grid.innerHTML = '';
+        
+        if (notes.length === 0) {
+            empty.classList.remove('d-none');
+            const emptyMsg = document.getElementById('emptyStateText');
+            if (activeStudentTab === 'favourites') {
+                emptyMsg.textContent = "You haven't favorited any notes matching the filters yet.";
+            } else {
+                emptyMsg.textContent = "No notes have been uploaded for your classroom yet.";
+            }
+            return;
+        }
+        
+        empty.classList.add('d-none');
+        
+        notes.forEach(note => {
+            const uploadDate = new Date(note.uploaded_at).toLocaleDateString('en-US', {
+                year: 'numeric', month: 'short', day: 'numeric'
+            });
+            
+            const favIconClass = note.is_favourite ? 'bi-star-fill text-warning' : 'bi-star text-muted';
+            
+            const card = document.createElement('div');
+            card.className = 'note-card position-relative';
+            card.innerHTML = `
+                <!-- Favorite Toggle -->
+                <button class="position-absolute top-0 end-0 mt-3 me-3 btn p-0 border-0 bg-transparent" 
+                        onclick="toggleFavourite(${note.id})" title="Toggle Favourite" style="z-index: 10;">
+                    <i class="bi ${favIconClass} fs-4"></i>
+                </button>
+
+                <div class="note-subject">${escapeHTML(note.subject)}</div>
+                <div class="mb-3 d-flex flex-wrap gap-2">
+                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-20 px-2 py-1 small fw-semibold">Unit ${escapeHTML(note.unit)}</span>
+                    ${note.topic ? `<span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-20 px-2 py-1 small fw-semibold">${escapeHTML(note.topic)}</span>` : ''}
+                </div>
+                
+                <div class="note-meta text-muted mb-1">
+                    <i class="bi bi-person-workspace text-success"></i> Uploaded by Prof: <strong>${escapeHTML(note.admin_name)}</strong>
+                </div>
+                <div class="note-meta text-muted mb-3">
+                    <i class="bi bi-calendar3"></i> Upload Date: ${uploadDate}
+                </div>
+                
+                <div class="note-credit-box">
+                    <div class="note-credit-title"><i class="bi bi-award-fill text-warning me-1"></i>Notes Prepared By</div>
+                    <div class="note-credit-val">${escapeHTML(note.credit_name)}</div>
+                    <div class="small text-secondary mt-1">Roll No: ${escapeHTML(note.credit_roll || 'N/A')}</div>
+                </div>
+                
+                <div class="d-flex gap-2 mt-2">
+                    <a href="/${note.file_path}" target="_blank" class="btn btn-custom btn-green flex-grow-1 py-2">
+                        <i class="bi bi-file-earmark-pdf-fill"></i> View PDF
+                    </a>
+                    <button class="btn btn-custom btn-green-outline px-3" onclick="copyShareLink('${note.file_path}')" title="Copy Share Link">
+                        <i class="bi bi-share-fill"></i>
+                    </button>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    function filterNotes() {
+        const q = document.getElementById('notesSearchInput').value.toLowerCase().trim();
+        const baseFiltered = getFilteredNotes();
+        if (!q) {
+            renderNotes(baseFiltered);
+            return;
+        }
+        
+        const filtered = baseFiltered.filter(note => {
+            return note.credit_name.toLowerCase().includes(q) || 
+                   note.credit_roll.toLowerCase().includes(q);
+        });
+        
+        renderNotes(filtered);
+    }
+
+    function escapeHTML(str) {
+        if (!str) return '';
+        return str.replace(/[&<>'"]/g, 
+            tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+        );
+    }
+</script>
+{% endblock %}
