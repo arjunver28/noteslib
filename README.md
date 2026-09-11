@@ -4,7 +4,7 @@
 
 ![Python](https://img.shields.io/badge/Python-3.8%2B-blue?logo=python&logoColor=white)
 ![Flask](https://img.shields.io/badge/Flask-3.0%2B-black?logo=flask&logoColor=white)
-![Database](https://img.shields.io/badge/Database-MariaDB%20%7C%20MySQL-003545?logo=mariadb&logoColor=white)
+![Database](https://img.shields.io/badge/Database-SQLite%20(Built--in)-003B57?logo=sqlite&logoColor=white)
 ![WSGI](https://img.shields.io/badge/WSGI-Gunicorn-green?logo=gunicorn&logoColor=white)
 ![UI](https://img.shields.io/badge/UI-Bootstrap%205%20%7C%20Glassmorphism-purple?logo=bootstrap&logoColor=white)
 ![Platform](https://img.shields.io/badge/Deployment-ClearOS%207%20%7C%20CentOS%207%20%7C%20Linux-orange?logo=linux&logoColor=white)
@@ -16,7 +16,7 @@
 
 ---
 
-[Key Features](#-key-features) • [Tech Stack](#-tech-stack--architecture) • [Repository Structure](#-repository-structure) • [Local Development](#-local-development-setup) • [Production Deployment](#-production-deployment-clearos-7--centos-7) • [Security & Compatibility](#-security--compatibility-hardening) • [Default Credentials](#-default-credentials)
+[Key Features](#-key-features) • [Tech Stack](#-tech-stack--architecture) • [Repository Structure](#-repository-structure) • [Local Development](#-local-development-setup) • [Production Deployment](#-production-deployment-clearos-7--centos-7) • [MySQL Migration](#-migrating-from-mysql--mariadb) • [Default Credentials](#-default-credentials)
 
 ---
 
@@ -31,6 +31,7 @@ Unlike generic cloud storage links, this platform enforces strict **academic cla
 * Registrations are automatically verified against an internal official university student roster (1,063+ student records).
 * Faculty administrators manage approvals, note uploads, and engagement analytics.
 * Root superusers oversee department creation, classroom lifecycles, and automated semester progression.
+* **Embedded SQLite Database:** Zero external database daemons or connection configurations required. Everything runs out of the box.
 
 ---
 
@@ -71,11 +72,11 @@ Unlike generic cloud storage links, this platform enforces strict **academic cla
 | :--- | :--- | :--- |
 | **Backend** | Python 3.8+ / Flask 3.0+ | Lightweight RESTful routing and server-side template rendering |
 | **WSGI Engine** | Gunicorn | High-performance multi-worker production WSGI server |
-| **Database** | MariaDB / MySQL | Relational storage with indexing on roll numbers and classroom IDs |
-| **DB Driver** | **PyMySQL** + **DBUtils** | 100% pure-Python database driver with thread-safe connection pooling |
+| **Database** | **SQLite 3 (Built-in)** | Single-file embedded storage (`notes_library.db`) with Write-Ahead Logging (`WAL`) mode |
+| **Concurrency** | WAL + 60s Busy Timeout | Non-blocking concurrent reads and serialized fast writes across multi-worker Gunicorn |
 | **Frontend** | Bootstrap 5, Bootstrap Icons, Custom CSS | Modern translucent glassmorphic interface with CSS variables |
 | **Student Roster** | Pure JSON (`cslist.json`) | Ultra-fast 34 KB pre-parsed roster parsed from `cslist.xlsx` via `cslist.py` |
-| **Target Host** | ClearOS 7 / CentOS 7 / RHEL 7 | Compatible with legacy enterprise kernels (`glibc 2.17`, `OpenSSL 1.0.2k`) |
+| **Target Host** | ClearOS 7 / CentOS 7 / RHEL 7 | Zero C-compiler dependencies; standard Python library compatibility |
 
 ---
 
@@ -83,27 +84,29 @@ Unlike generic cloud storage links, this platform enforces strict **academic cla
 
 ```text
 noteslib/
-├── app.py                 # Core Flask app (authentication, route controllers, REST APIs)
-├── db.py                  # Database connection pool manager (PyMySQL with fallback)
-├── db_setup.py            # Automatic schema migration & default superuser seeder
-├── cslist.py              # XLSX -> JSON converter & normalizer utility
-├── cslist.json            # Fast, pre-parsed 34 KB student roster (1,063 records)
-├── cslist.xlsx            # Master university student roster spreadsheet
-├── wsgi.py                # WSGI entrypoint for Gunicorn production deployment
-├── requirements.txt       # Capped dependency manifest (guaranteed Python 3.8 compatibility)
-├── deploy_clearos.sh      # 1-command automated deployment script for ClearOS / CentOS
-├── noteslib.service       # Systemd production unit file template
+├── app.py                     # Core Flask app (authentication, route controllers, REST APIs)
+├── db.py                      # SQLite database manager with WAL mode, proxy & dict factory
+├── db_setup.py                # Schema initialization & default superuser seeder
+├── migrate_mysql_to_sqlite.py # Migration tool to copy data from MySQL to SQLite
+├── cslist.py                  # XLSX -> JSON converter & normalizer utility
+├── cslist.json                # Fast, pre-parsed 34 KB student roster (1,063 records)
+├── cslist.xlsx                # Master university student roster spreadsheet
+├── wsgi.py                    # WSGI entrypoint for Gunicorn production deployment
+├── requirements.txt           # Dependency manifest (pure Python, zero DB drivers needed)
+├── deploy_clearos.sh          # 1-command automated deployment script for ClearOS / CentOS
+├── noteslib.service           # Systemd production unit file template
+├── notes_library.db           # Embedded SQLite database file
 ├── static/
 │   ├── css/
-│   │   └── style.css      # Core responsive glassmorphic stylesheet (320px to 4K)
-│   └── uploads/           # Storage directory for uploaded PDF notes
+│   │   └── style.css          # Core responsive glassmorphic stylesheet (320px to 4K)
+│   └── uploads/               # Storage directory for uploaded PDF notes
 └── templates/
-    ├── base.html          # Master HTML layout with fluid navbar & responsive container
-    ├── login.html         # Split-card unified login & student registration portal
-    ├── student.html       # Student dashboard with notes grid, filters, and favourites
-    ├── admin.html         # Faculty dashboard with approvals, roster, & analytics
-    ├── superuser.html     # Superuser console with classroom setup & semester shifts
-    └── login_required.html# Locked resource authentication modal
+    ├── base.html              # Master HTML layout with fluid navbar & responsive container
+    ├── login.html             # Split-card unified login & student registration portal
+    ├── student.html           # Student dashboard with notes grid, filters, and favourites
+    ├── admin.html             # Faculty dashboard with approvals, roster, & analytics
+    ├── superuser.html         # Superuser console with classroom setup & semester shifts
+    └── login_required.html    # Locked resource authentication modal
 ```
 
 ---
@@ -112,7 +115,7 @@ noteslib/
 
 ### Prerequisites
 * Python 3.8 or higher installed
-* MySQL 5.7+ or MariaDB 10.2+ installed and running
+* No external database server required!
 
 ### 1. Clone & Navigate to Repository
 ```bash
@@ -136,18 +139,11 @@ python -m venv venv
 pip install -r requirements.txt
 ```
 
-### 4. Configure Database and Run Migrations
-Make sure your MySQL / MariaDB service is running:
+### 4. Initialize Database
 ```bash
-# Linux / macOS:
-export DB_HOST="localhost"
-export DB_USER="root"
-export DB_PASSWORD="MySQL@123"
-export DB_NAME="notes_library"
-
 python db_setup.py
 ```
-*(On Windows PowerShell, use `$env:DB_PASSWORD="MySQL@123"` before running `python db_setup.py`)*
+*(Note: If you skip this step, `app.py` will automatically initialize `notes_library.db` on first run!)*
 
 ### 5. Launch Development Server
 ```bash
@@ -159,7 +155,7 @@ Open your browser and navigate to: **`http://localhost:3000`**
 
 ## 🌐 Production Deployment (ClearOS 7 / CentOS 7)
 
-This codebase has been specifically designed to deploy seamlessly on enterprise servers such as **ClearOS 7** (CentOS 7 / RHEL 7 base) with legacy constraints:
+Because SQLite is embedded into Python, you **do not need to install, configure, or run MariaDB or MySQL** on your server.
 
 ### Option A: Automated 1-Script Deployment
 ```bash
@@ -170,13 +166,7 @@ chmod +x deploy_clearos.sh
 
 ### Option B: Step-by-Step Manual Deployment
 
-1. **Verify MariaDB service is active:**
-   ```bash
-   systemctl enable mariadb
-   systemctl start mariadb
-   ```
-
-2. **Initialize Python 3.8 virtual environment:**
+1. **Initialize Python 3.8 virtual environment:**
    ```bash
    cd /var/www/23014168025/noteslib
    python3.8 -m venv venv
@@ -185,13 +175,12 @@ chmod +x deploy_clearos.sh
    pip install -r requirements.txt
    ```
 
-3. **Run database setup:**
+2. **Initialize SQLite database:**
    ```bash
-   export DB_PASSWORD="MySQL@123"
    python db_setup.py
    ```
 
-4. **Install and start the Systemd service:**
+3. **Install and start the Systemd service:**
    ```bash
    cp noteslib.service /etc/systemd/system/
    systemctl daemon-reload
@@ -200,13 +189,13 @@ chmod +x deploy_clearos.sh
    systemctl status noteslib
    ```
 
-5. **Open firewall port (ClearOS / CentOS):**
+4. **Open firewall port (ClearOS / CentOS):**
    ```bash
    firewall-cmd --permanent --add-port=3000/tcp
    firewall-cmd --reload
    ```
 
-6. **(Optional) Standard Port 80 Forwarding:**
+5. **(Optional) Standard Port 80 Forwarding:**
    ```bash
    # Allows accessing http://<server-ip>/ without typing :3000
    iptables -t nat -I PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 3000
@@ -215,29 +204,45 @@ chmod +x deploy_clearos.sh
 
 ---
 
+## 🔄 Migrating from MySQL / MariaDB
+
+If you have an existing deployment with academic data already in MariaDB/MySQL, you can migrate all classrooms, users, student records, and notes to SQLite in 1 command:
+
+1. Temporarily install `pymysql` inside your virtual environment (if not already installed):
+   ```bash
+   pip install pymysql
+   ```
+
+2. Run the migration script:
+   ```bash
+   # Optional: set custom MySQL password if different from MySQL@123
+   export DB_PASSWORD="MySQL@123"
+   python migrate_mysql_to_sqlite.py
+   ```
+
+3. The script automatically transfers records in proper foreign key order, verifies row counts, and generates `notes_library.db`.
+
+4. You can now stop and disable MariaDB/MySQL to free up system memory:
+   ```bash
+   systemctl stop mariadb
+   systemctl disable mariadb
+   ```
+
+---
+
 ## 🛡️ Security & Compatibility Hardening
 
 * **OpenSSL 1.0.2k Fix (`scrypt` attribute fallback):**
   Legacy OpenSSL builds on CentOS 7 lack native hardware `scrypt` hashing support. Password generation is explicitly set to use standard `pbkdf2:sha256`, preventing fatal HTTP 500 crashes during administrator or student creation.
-* **Binary Wheel Immunity (`glibc 2.17`):**
-  C-based MySQL drivers frequently fail to build or link on CentOS 7 due to `glibc` incompatibilities. `noteslib` utilizes **PyMySQL** (pure Python) backed by **DBUtils** connection pooling for zero-compilation stability.
+* **Write-Ahead Logging (WAL Mode):**
+  The SQLite database is initialized with `PRAGMA journal_mode = WAL;`. Readers and writers run concurrently without locking each other, allowing multiple Gunicorn workers to operate smoothly under high student loads.
 * **Role-Based Session Guard:**
   Server-side validation verifies session identities before servicing routes (`@student_required`, `@admin_required`, `@superuser_required`).
-* **Safe Upload Handling:**
-  Files uploaded are checked against an extension whitelist (`.pdf`) and stored under sanitized filesystem naming conventions.
-
----
-
-## ⚙️ Environment Configuration
-
-| Variable | Default Value | Description |
-| :--- | :--- | :--- |
-| `PORT` | `3000` | Port for Flask or Gunicorn to bind |
-| `DB_HOST` | `localhost` | MySQL/MariaDB database host |
-| `DB_PORT` | `3306` | MySQL/MariaDB port |
-| `DB_USER` | `root` | Database username |
-| `DB_PASSWORD` | `MySQL@123` | Database user password |
-| `DB_NAME` | `notes_library` | Database schema name |
+* **Effortless Backups:**
+  To back up your entire database, simply make a copy of the single file:
+  ```bash
+  cp notes_library.db notes_library_backup_$(date +%Y%m%d).db
+  ```
 
 ---
 
@@ -248,33 +253,17 @@ chmod +x deploy_clearos.sh
 | **Superuser Console** | `superuser` | `superuser123` | Root administrator with total platform control |
 | **Student Roster Sample** | `24012900001` | *Set during registration* | Verified student roll from `cslist.json` (AADITYA RAJPUT) |
 
-> 💡 **Tip:** Change default superuser passwords immediately after initial deployment via the Superuser Console or database console.
-
----
-
-## 📋 Student Roster Management
-
-To update the student roster when a new academic session begins:
-1. Place the updated Excel sheet as `cslist.xlsx` in the project root.
-2. Run the converter:
-   ```bash
-   python cslist.py
-   ```
-3. The script sanitizes roll numbers, extracts student names, and generates an updated `cslist.json` without any server downtime.
-4. Restart the service to refresh the cached roster:
-   ```bash
-   systemctl restart noteslib
-   ```
+> 💡 **Tip:** Change default superuser passwords immediately after initial deployment via the Superuser Console.
 
 ---
 
 ## 🔧 Service Management Cheat Sheet
 
 ```bash
-# Check if application is running
+# Check service status
 systemctl status noteslib
 
-# Follow live server access and error logs
+# Follow live logs
 journalctl -u noteslib -f
 
 # Restart application

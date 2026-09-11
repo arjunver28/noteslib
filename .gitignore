@@ -1,0 +1,61 @@
+# ==========================================
+# NotesLib - Git Ignore Configuration
+# ==========================================
+
+# --- Gradle & Android Build Outputs ---
+.gradle/
+**/.gradle/
+build/
+**/build/
+captures/
+**/captures/
+.externalNativeBuild/
+**/.externalNativeBuild/
+.cxx/
+**/.cxx/
+
+# --- Local Machine & SDK Configuration ---
+local.properties
+**/local.properties
+
+# --- Android Studio / IntelliJ IDEA ---
+.idea/
+**/.idea/
+*.iml
+**/*.iml
+.navigation/
+**/.navigation/
+
+# --- Python ---
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+.eggs/
+
+# --- Virtual Environments ---
+venv/
+.venv/
+env/
+ENV/
+
+# --- Operating System Files ---
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# --- Logs & Temporary Files ---
+*.log
+*.tmp
+*.swp
+*.bak
+*.orig
+
+# --- Runtime Uploads ---
+uploads/*
+!uploads/.gitkeep

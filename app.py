@@ -792,12 +792,13 @@ def api_superuser_promote_all():
         cursor.execute("SELECT course_name, total_semesters FROM configured_courses")
         course_limits = {row['course_name']: row['total_semesters'] for row in cursor.fetchall()}
         
-        # 1. Permanently delete graduating students who are already in the last semester
         for course_name, limit in course_limits.items():
             cursor.execute("""
-                DELETE s FROM students s
-                JOIN classrooms c ON s.classroom_id = c.id
-                WHERE c.course = %s AND c.semester >= %s
+                DELETE FROM students 
+                WHERE classroom_id IN (
+                    SELECT c.id FROM classrooms c
+                    WHERE c.course = %s AND c.semester >= %s
+                )
             """, (course_name, limit))
         
         # 2. Fetch all classrooms that have non-graduating students currently registered
