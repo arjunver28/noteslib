@@ -1,22 +1,24 @@
-# Notes Library — Shobhit University Gangoh
+# NotesLib — Shobhit University Gangoh
 
 <div align="center">
 
+![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20Web%20%7C%20Linux-blue?logo=android&logoColor=white)
+![Kotlin](https://img.shields.io/badge/Kotlin-1.9%2B-purple?logo=kotlin&logoColor=white)
+![Jetpack Compose](https://img.shields.io/badge/UI-Jetpack%20Compose%20%7C%20Material%203-4285F4?logo=jetpackcompose&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-3.8%2B-blue?logo=python&logoColor=white)
 ![Flask](https://img.shields.io/badge/Flask-3.0%2B-black?logo=flask&logoColor=white)
-![Database](https://img.shields.io/badge/Database-SQLite%20(Built--in)-003B57?logo=sqlite&logoColor=white)
-![WSGI](https://img.shields.io/badge/WSGI-Gunicorn-green?logo=gunicorn&logoColor=white)
-![UI](https://img.shields.io/badge/UI-Bootstrap%205%20%7C%20Glassmorphism-purple?logo=bootstrap&logoColor=white)
-![Platform](https://img.shields.io/badge/Deployment-ClearOS%207%20%7C%20CentOS%207%20%7C%20Linux-orange?logo=linux&logoColor=white)
+![Database](https://img.shields.io/badge/Database-SQLite%20(WAL%20Mode)-003B57?logo=sqlite&logoColor=white)
+![Gradle](https://img.shields.io/badge/Build-Gradle%208.2-02303A?logo=gradle&logoColor=white)
+![Deployment](https://img.shields.io/badge/Deployment-ClearOS%207%20%7C%20CentOS%207-orange?logo=linux&logoColor=white)
 ![License](https://img.shields.io/badge/License-Academic%20Use-lightgrey)
 
-**A secure, modern, and lightweight digital academic resource-sharing platform designed for Shobhit University Gangoh.**
+**A complete, modern digital academic repository and notes-sharing ecosystem for Shobhit University Gangoh.**
 
-*Enabling verified students, faculty administrators, and university superusers to organize, share, and access unit-wise curriculum notes with role-based access control, analytics tracking, and automated semester management.*
+*Featuring native Android applications for Students and Faculty Administrators built with Jetpack Compose, a full-featured Flask web platform, role-based access control, unit-wise curriculum distribution, and an automated student verification roster.*
 
 ---
 
-[Key Features](#-key-features) • [Tech Stack](#-tech-stack--architecture) • [Repository Structure](#-repository-structure) • [Local Development](#-local-development-setup) • [Production Deployment](#-production-deployment-clearos-7--centos-7) • [MySQL Migration](#-migrating-from-mysql--mariadb) • [Default Credentials](#-default-credentials)
+[Key Highlights](#-key-highlights) • [Repository Structure](#-repository-structure) • [Mobile Apps (Android)](#-mobile-apps-android) • [Web Platform & Backend](#-web-platform--backend) • [Setup & Installation](#-setup--installation) • [API & Architecture](#-api--architecture) • [Default Credentials](#-default-credentials) • [Deployment](#-production-deployment-clearos--centos)
 
 ---
 
@@ -24,59 +26,40 @@
 
 ## 📖 Overview
 
-**Notes Library** is a specialized academic repository built to centralize lecture notes, assignments, and study materials across diverse degree programs (B.Tech, BCA, MCA, B.Sc, Diploma, etc.).
+**NotesLib** is an integrated academic resource system designed to replace fragmented cloud storage links with a structured, classroom-isolated learning portal. The ecosystem consists of:
 
-Unlike generic cloud storage links, this platform enforces strict **academic classroom isolation**:
-* Students only see curated notes uploaded for their verified Course, Branch, and Semester.
-* Registrations are automatically verified against an internal official university student roster (1,063+ student records).
-* Faculty administrators manage approvals, note uploads, and engagement analytics.
-* Root superusers oversee department creation, classroom lifecycles, and automated semester progression.
-* **Embedded SQLite Database:** Zero external database daemons or connection configurations required. Everything runs out of the box.
-
----
-
-## 🚀 Key Features
-
-### 👨‍🎓 1. Student Portal
-* **Verified Registration:** Seamless student signup with instant validation against the official university roster (`cslist.json`).
-* **Classroom-Locked Feeds:** Eliminates clutter; students only access verified academic notes matching their enrolled semester and curriculum.
-* **Subject & Favourites System:** Dynamic subject pills for instant filtering, plus a persistent personal bookmarking ("Favourites") tab.
-* **In-Browser PDF Viewer & Direct Links:** One-click preview with shareable links for peer collaboration.
-* **Clean Download Experience:** Instant PDF retrieval with tracked view counters.
-
-### 🛡️ 2. Faculty Admin Dashboard
-* **Structured Note Upload Wizard:** Tag notes by Subject, Unit (Unit 1 to 5+), Topic, and contributing student roll number or faculty name.
-* **Student Verification Desk:** Approve or reject pending student registrations within the assigned classroom.
-* **Student Roster Management:** View all enrolled students, inspect active status, or issue one-click password resets.
-* **Engagement Analytics:** Real-time metrics on total note views, active student readers, and most popular study resources.
-
-### ⚙️ 3. Superuser Console (Root Control)
-* **Classroom Lifecycle:** Create and configure classrooms mapped to course, branch, and maximum semester limits.
-* **Admin Provisioning:** Generate faculty administrator credentials and assign departmental management scopes.
-* **Automated Semester Shift ("Danger Zone"):**
-  * One-click mass student promotion to the subsequent semester.
-  * Catch-back reconciliation for odd/even semester transitions.
-  * Automatic graduation cleanup archiving final-year students.
-* **Curriculum Configuration:** Define course durations, authorized specializations, and departmental branches.
-
-### 📱 4. Universal Glassmorphic UI/UX
-* **320px to 4K Responsive:** Fully responsive layout with fluid scaling (`clamp()`), safe margins, and touch-optimized components.
-* **Kinetic Navigation:** Horizontally scrollable touch tabs, sticky responsive headers, and view-safe modals with independent internal scrolling.
-* **Accessibility Compliant:** Minimum 44px touch targets across mobile, tablet, and desktop viewports.
+1. **Native Android Applications:**
+   * **NotesLib - Student**: Curriculum-locked notes explorer, unit filters (All, 1–5), instant search, personal favourites/bookmarks, and in-app PDF viewing.
+   * **NotesLib - Admin**: Faculty portal with note upload wizard (subject dropdowns & custom units), pending student approval desk, student roster management, and view analytics.
+2. **Web Portal & REST Backend:**
+   * Server-side rendered web portal with a responsive glassmorphic UI.
+   * Centralized REST API engine powering both mobile clients with persistent session handling.
+   * Embedded high-concurrency SQLite database with Write-Ahead Logging (WAL).
+   * Automated student roster verification against 1,063+ university records (`cslist.json`).
 
 ---
 
-## 🛠️ Tech Stack & Architecture
+## 🚀 Key Highlights
 
-| Layer | Technology | Details |
-| :--- | :--- | :--- |
-| **Backend** | Python 3.8+ / Flask 3.0+ | Lightweight RESTful routing and server-side template rendering |
-| **WSGI Engine** | Gunicorn | High-performance multi-worker production WSGI server |
-| **Database** | **SQLite 3 (Built-in)** | Single-file embedded storage (`notes_library.db`) with Write-Ahead Logging (`WAL`) mode |
-| **Concurrency** | WAL + 60s Busy Timeout | Non-blocking concurrent reads and serialized fast writes across multi-worker Gunicorn |
-| **Frontend** | Bootstrap 5, Bootstrap Icons, Custom CSS | Modern translucent glassmorphic interface with CSS variables |
-| **Student Roster** | Pure JSON (`cslist.json`) | Ultra-fast 34 KB pre-parsed roster parsed from `cslist.xlsx` via `cslist.py` |
-| **Target Host** | ClearOS 7 / CentOS 7 / RHEL 7 | Zero C-compiler dependencies; standard Python library compatibility |
+### 👨‍🎓 1. Student Features
+* **Roster-Verified Signup:** Self-registration strictly validated against official student roll numbers (`cslist.json`).
+* **Classroom Isolation:** Students only access notes specifically approved for their Course, Branch, and Semester.
+* **Unit Filtering & Search:** Filter resources by **All Units** or **Units 1 to 5**, coupled with live title/topic search.
+* **Persistent Favourites:** One-tap bookmarking to quickly revisit important exam notes.
+* **In-App PDF Viewer:** Streamlined preview and download with tracked read counters.
+* **Persistent Session:** Automatic silent background re-authentication via disk-backed cookie storage.
+
+### 🛡️ 2. Faculty Administrator Features
+* **Subject-Locked Note Uploads:** Subject dropdown menus strictly populated with subjects under the admin's assigned semester (prevents typographical errors).
+* **Flexible Unit Categorization:** Full support for standard curriculum units (1–5) plus an **"Others"** category for syllabi, question banks, or assignment briefs.
+* **Student Verification Desk:** Review, approve, or reject new student registrations in real time.
+* **Classroom Roster Control:** Monitor enrolled students, view activity status, and issue password resets.
+* **Live Engagement Metrics:** Track view counts, download statistics, and top study resources.
+
+### 🎨 3. Design & Android Native Experience
+* **100% Jetpack Compose & Material 3:** Modern, fluid animations, bottom navigation bars, and glassmorphism-inspired cards.
+* **Aspect-Ratio Preserved Logo:** University brand header with mathematically exact 3.69:1 ratio.
+* **Custom Adaptive Launcher Icon:** Official Shobhit University gold crest centered on signature `#063D2B` academic green, optimized with a 58% safe zone to prevent clipping across Pixel, Samsung OneUI, and MIUI launchers.
 
 ---
 
@@ -84,200 +67,38 @@ Unlike generic cloud storage links, this platform enforces strict **academic cla
 
 ```text
 noteslib/
-├── app.py                     # Core Flask app (authentication, route controllers, REST APIs)
-├── db.py                      # SQLite database manager with WAL mode, proxy & dict factory
-├── db_setup.py                # Schema initialization & default superuser seeder
-├── migrate_mysql_to_sqlite.py # Migration tool to copy data from MySQL to SQLite
-├── cslist.py                  # XLSX -> JSON converter & normalizer utility
-├── cslist.json                # Fast, pre-parsed 34 KB student roster (1,063 records)
-├── cslist.xlsx                # Master university student roster spreadsheet
-├── wsgi.py                    # WSGI entrypoint for Gunicorn production deployment
-├── requirements.txt           # Dependency manifest (pure Python, zero DB drivers needed)
-├── deploy_clearos.sh          # 1-command automated deployment script for ClearOS / CentOS
-├── noteslib.service           # Systemd production unit file template
-├── notes_library.db           # Embedded SQLite database file
-├── static/
-│   ├── css/
-│   │   └── style.css          # Core responsive glassmorphic stylesheet (320px to 4K)
-│   └── uploads/               # Storage directory for uploaded PDF notes
-└── templates/
-    ├── base.html              # Master HTML layout with fluid navbar & responsive container
-    ├── login.html             # Split-card unified login & student registration portal
-    ├── student.html           # Student dashboard with notes grid, filters, and favourites
-    ├── admin.html             # Faculty dashboard with approvals, roster, & analytics
-    ├── superuser.html         # Superuser console with classroom setup & semester shifts
-    └── login_required.html    # Locked resource authentication modal
-```
-
----
-
-## ⚡ Local Development Setup
-
-### Prerequisites
-* Python 3.8 or higher installed
-* No external database server required!
-
-### 1. Clone & Navigate to Repository
-```bash
-git clone https://github.com/your-username/noteslib.git
-cd noteslib
-```
-
-### 2. Create and Activate a Virtual Environment
-```bash
-# Linux / macOS:
-python3 -m venv venv
-source venv/bin/activate
-
-# Windows (PowerShell):
-python -m venv venv
-.\venv\Scripts\Activate.ps1
-```
-
-### 3. Install Required Dependencies
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Initialize Database
-```bash
-python db_setup.py
-```
-*(Note: If you skip this step, `app.py` will automatically initialize `notes_library.db` on first run!)*
-
-### 5. Launch Development Server
-```bash
-python app.py
-```
-Open your browser and navigate to: **`http://localhost:3000`**
-
----
-
-## 🌐 Production Deployment (ClearOS 7 / CentOS 7)
-
-Because SQLite is embedded into Python, you **do not need to install, configure, or run MariaDB or MySQL** on your server.
-
-### Option A: Automated 1-Script Deployment
-```bash
-cd /var/www/23014168025/noteslib
-chmod +x deploy_clearos.sh
-./deploy_clearos.sh
-```
-
-### Option B: Step-by-Step Manual Deployment
-
-1. **Initialize Python 3.8 virtual environment:**
-   ```bash
-   cd /var/www/23014168025/noteslib
-   python3.8 -m venv venv
-   source venv/bin/activate
-   pip install --upgrade "pip<24.1" "setuptools<69.0.0"
-   pip install -r requirements.txt
-   ```
-
-2. **Initialize SQLite database:**
-   ```bash
-   python db_setup.py
-   ```
-
-3. **Install and start the Systemd service:**
-   ```bash
-   cp noteslib.service /etc/systemd/system/
-   systemctl daemon-reload
-   systemctl enable noteslib
-   systemctl start noteslib
-   systemctl status noteslib
-   ```
-
-4. **Open firewall port (ClearOS / CentOS):**
-   ```bash
-   firewall-cmd --permanent --add-port=3000/tcp
-   firewall-cmd --reload
-   ```
-
-5. **(Optional) Standard Port 80 Forwarding:**
-   ```bash
-   # Allows accessing http://<server-ip>/ without typing :3000
-   iptables -t nat -I PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 3000
-   iptables -I INPUT -p tcp --dport 80 -j ACCEPT
-   ```
-
----
-
-## 🔄 Migrating from MySQL / MariaDB
-
-If you have an existing deployment with academic data already in MariaDB/MySQL, you can migrate all classrooms, users, student records, and notes to SQLite in 1 command:
-
-1. Temporarily install `pymysql` inside your virtual environment (if not already installed):
-   ```bash
-   pip install pymysql
-   ```
-
-2. Run the migration script:
-   ```bash
-   # Optional: set custom MySQL password if different from MySQL@123
-   export DB_PASSWORD="MySQL@123"
-   python migrate_mysql_to_sqlite.py
-   ```
-
-3. The script automatically transfers records in proper foreign key order, verifies row counts, and generates `notes_library.db`.
-
-4. You can now stop and disable MariaDB/MySQL to free up system memory:
-   ```bash
-   systemctl stop mariadb
-   systemctl disable mariadb
-   ```
-
----
-
-## 🛡️ Security & Compatibility Hardening
-
-* **OpenSSL 1.0.2k Fix (`scrypt` attribute fallback):**
-  Legacy OpenSSL builds on CentOS 7 lack native hardware `scrypt` hashing support. Password generation is explicitly set to use standard `pbkdf2:sha256`, preventing fatal HTTP 500 crashes during administrator or student creation.
-* **Write-Ahead Logging (WAL Mode):**
-  The SQLite database is initialized with `PRAGMA journal_mode = WAL;`. Readers and writers run concurrently without locking each other, allowing multiple Gunicorn workers to operate smoothly under high student loads.
-* **Role-Based Session Guard:**
-  Server-side validation verifies session identities before servicing routes (`@student_required`, `@admin_required`, `@superuser_required`).
-* **Effortless Backups:**
-  To back up your entire database, simply make a copy of the single file:
-  ```bash
-  cp notes_library.db notes_library_backup_$(date +%Y%m%d).db
-  ```
-
----
-
-## 🔑 Default Credentials
-
-| Portal | Username / Identifier | Default Password | Role Details |
-| :--- | :--- | :--- | :--- |
-| **Superuser Console** | `superuser` | `superuser123` | Root administrator with total platform control |
-| **Student Roster Sample** | `24012900001` | *Set during registration* | Verified student roll from `cslist.json` (AADITYA RAJPUT) |
-
-> 💡 **Tip:** Change default superuser passwords immediately after initial deployment via the Superuser Console.
-
----
-
-## 🔧 Service Management Cheat Sheet
-
-```bash
-# Check service status
-systemctl status noteslib
-
-# Follow live logs
-journalctl -u noteslib -f
-
-# Restart application
-systemctl restart noteslib
-
-# Stop application
-systemctl stop noteslib
-```
-
----
-
-## 📜 License & Copyright
-
-Designed and developed for **Shobhit University Gangoh**.
-
-* **Motto:** *Tejasvi Navadhitamastu* (May our learning be brilliant and effective)
-* **Copyright:** &copy; 2026 Shobhit University, Gangoh. All Rights Reserved.
+│
+├── 📱 ANDROID APPLICATIONS
+│   ├── NotesLib - Student/        # Standalone Android Studio project for Student App
+│   ├── NotesLib - Admin/          # Standalone Android Studio project for Admin App
+│   ├── android/                   # Unified multi-flavor Gradle project (studentDebug, adminDebug)
+│   ├── appicon.png                # Official app icon asset (#063D2B green crest)
+│   └── app.logo.png               # Official transparent university crest asset
+│
+├── 🌐 FLASK BACKEND & WEB PORTAL
+│   ├── app.py                     # Core Flask application (REST API & Web routes)
+│   ├── db.py                      # SQLite database manager (WAL mode, timeouts, helpers)
+│   ├── db_setup.py                # Schema initialization & superuser seeder
+│   ├── cslist.json                # Pre-parsed student roster (1,063 records)
+│   ├── cslist.xlsx                # Master student roster spreadsheet
+│   ├── cslist.py                  # XLSX -> JSON roster converter utility
+│   ├── migrate_mysql_to_sqlite.py # Legacy MySQL/MariaDB to SQLite migration tool
+│   ├── wsgi.py                    # Gunicorn production WSGI entrypoint
+│   ├── requirements.txt           # Python dependency manifest
+│   ├── notes_library.db           # SQLite database file
+│   │
+│   ├── static/                    # Web static assets (CSS, JS, images)
+│   │   └── css/style.css          # Responsive glassmorphic stylesheet (320px to 4K)
+│   ├── templates/                 # Server-side HTML templates (Jinja2)
+│   │   ├── base.html              # Layout shell with responsive navbar
+│   │   ├── login.html             # Split-card unified login & registration
+│   │   ├── student.html           # Student web dashboard
+│   │   ├── admin.html             # Faculty web dashboard
+│   │   └── superuser.html         # Superuser control panel
+│   └── uploads/                   # Local storage directory for uploaded PDF notes
+│
+└── 🚀 CONFIGURATION & DEPLOYMENT
+    ├── .gitignore                 # Comprehensive Git ignore rules (builds, caches, SDKs)
+    ├── deploy_clearos.sh          # Automated 1-command deployment script for ClearOS/CentOS
+    ├── noteslib.service           # Systemd daemon service configuration
+    └── README.md                  # Project documentation
